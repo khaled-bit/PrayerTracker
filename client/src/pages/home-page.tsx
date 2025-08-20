@@ -451,60 +451,60 @@ export default function HomePage() {
                 </div>
 
                 <div className="overflow-x-auto bg-white rounded-lg border" dir="rtl">
-                  <Table className="w-full border-separate border-spacing-0" dir="rtl">
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-right arabic-text w-20">الترتيب</TableHead>
-                        <TableHead className="text-right arabic-text min-w-40">الاسم</TableHead>
-                        <TableHead className="text-right arabic-text w-16">العمر</TableHead>
-                        <TableHead className="text-right arabic-text w-20">النقاط</TableHead>
-                        <TableHead className="text-right arabic-text w-24">السلاسل الشهرية</TableHead>
-                        <TableHead className="text-right arabic-text w-24">السلاسل السنوية</TableHead>
-                        <TableHead className="text-right arabic-text w-28">الصلوات المكتملة</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
+                  <table className="w-full border-collapse" dir="rtl">
+                    <thead className="bg-gray-50">
+                      <tr className="border-b">
+                        <th className="text-right arabic-text px-4 py-3 font-semibold text-gray-700" style={{width: "80px"}}>الترتيب</th>
+                        <th className="text-right arabic-text px-4 py-3 font-semibold text-gray-700" style={{width: "200px"}}>الاسم</th>
+                        <th className="text-right arabic-text px-4 py-3 font-semibold text-gray-700" style={{width: "80px"}}>العمر</th>
+                        <th className="text-right arabic-text px-4 py-3 font-semibold text-gray-700" style={{width: "100px"}}>النقاط</th>
+                        <th className="text-right arabic-text px-4 py-3 font-semibold text-gray-700" style={{width: "120px"}}>السلاسل الشهرية</th>
+                        <th className="text-right arabic-text px-4 py-3 font-semibold text-gray-700" style={{width: "120px"}}>السلاسل السنوية</th>
+                        <th className="text-right arabic-text px-4 py-3 font-semibold text-gray-700" style={{width: "140px"}}>الصلوات المكتملة</th>
+                      </tr>
+                    </thead>
+                    <tbody>
                       {leaderboard.users.map((user: any, index: number) => (
-                        <TableRow key={user.id}>
-                          <TableCell className="text-right">
+                        <tr key={user.id} className="border-b hover:bg-gray-50">
+                          <td className="text-right px-4 py-3" style={{width: "80px"}}>
                             <div className="flex items-center justify-end">
                               <span className={`text-lg font-bold ${index === 0 ? 'text-islamic-gold' : 'text-gray-600'}`}>
                                 #{user.rank}
                               </span>
                               {index === 0 && <Crown className="text-islamic-gold mr-2 h-4 w-4" />}
                             </div>
-                          </TableCell>
-                          <TableCell className="text-right">
+                          </td>
+                          <td className="text-right px-4 py-3" style={{width: "200px"}}>
                             <div className="flex items-center justify-end">
-                              <span className="text-sm font-medium text-gray-900 arabic-text mr-3">{user.name}</span>
-                              <div className="w-8 h-8 bg-islamic-green rounded-full flex items-center justify-center">
+                              <span className="text-sm font-medium text-gray-900 arabic-text mr-3 truncate">{user.name}</span>
+                              <div className="w-8 h-8 bg-islamic-green rounded-full flex items-center justify-center flex-shrink-0">
                                 <span className="text-white text-sm font-medium">
                                   {user.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
                                 </span>
                               </div>
                             </div>
-                          </TableCell>
-                          <TableCell className="text-right">{user.age}</TableCell>
-                          <TableCell className="text-right">
+                          </td>
+                          <td className="text-right px-4 py-3" style={{width: "80px"}}>{user.age}</td>
+                          <td className="text-right px-4 py-3" style={{width: "100px"}}>
                             <span className="text-lg font-semibold text-islamic-green">{user.totalPoints}</span>
-                          </TableCell>
-                          <TableCell className="text-right">
+                          </td>
+                          <td className="text-right px-4 py-3" style={{width: "120px"}}>
                             <div className="flex items-center justify-end">
                               <span className="text-sm font-semibold text-islamic-gold mr-1">{user.dailyStreaks}</span>
-                              <Flame className="w-3 h-3 text-islamic-gold" />
+                              <Flame className="w-3 h-3 text-islamic-gold flex-shrink-0" />
                             </div>
-                          </TableCell>
-                          <TableCell className="text-right">
+                          </td>
+                          <td className="text-right px-4 py-3" style={{width: "120px"}}>
                             <div className="flex items-center justify-end">
                               <span className="text-sm font-semibold text-islamic-green mr-1">{user.yearlyStreaks}</span>
-                              <Flame className="w-3 h-3 text-islamic-green" />
+                              <Flame className="w-3 h-3 text-islamic-green flex-shrink-0" />
                             </div>
-                          </TableCell>
-                          <TableCell className="text-right">{user.prayersCompleted}</TableCell>
-                        </TableRow>
+                          </td>
+                          <td className="text-right px-4 py-3" style={{width: "140px"}}>{user.prayersCompleted}</td>
+                        </tr>
                       ))}
-                    </TableBody>
-                  </Table>
+                    </tbody>
+                  </table>
                 </div>
 
                 {/* Pagination */}
