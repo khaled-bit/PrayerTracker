@@ -236,9 +236,9 @@ export default function HomePage() {
         {/* Dashboard Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card className="border-islamic-green border-2">
-            <CardContent className="p-6">
+            <CardContent className="p-6" dir="rtl">
               <div className="flex items-center justify-between">
-                <div>
+                <div className="text-right">
                   <h3 className="text-lg font-semibold text-islamic-navy arabic-text">نقاط هذا الشهر</h3>
                   <p className="text-3xl font-bold text-islamic-green">{userStats?.monthlyPoints || 0}</p>
                 </div>
@@ -250,9 +250,9 @@ export default function HomePage() {
           </Card>
           
           <Card className="border-islamic-gold border-2">
-            <CardContent className="p-6">
+            <CardContent className="p-6" dir="rtl">
               <div className="flex items-center justify-between">
-                <div>
+                <div className="text-right">
                   <h3 className="text-lg font-semibold text-islamic-navy arabic-text">السلسلة الحالية</h3>
                   <p className="text-3xl font-bold text-islamic-gold">{userStats?.currentStreak || 0}</p>
                   <span className="text-sm text-gray-600 arabic-text">أيام متتالية</span>
@@ -265,9 +265,9 @@ export default function HomePage() {
           </Card>
           
           <Card className="border-islamic-navy border-2">
-            <CardContent className="p-6">
+            <CardContent className="p-6" dir="rtl">
               <div className="flex items-center justify-between">
-                <div>
+                <div className="text-right">
                   <h3 className="text-lg font-semibold text-islamic-navy arabic-text">الترتيب الشهري</h3>
                   <p className="text-3xl font-bold text-islamic-navy">#{userStats?.monthlyRank || 0}</p>
                   <span className="text-sm text-gray-600 arabic-text">من {userStats?.totalUsers || 0} مستخدم</span>
@@ -538,25 +538,25 @@ export default function HomePage() {
 
           {/* Profile Tab */}
           <TabsContent value="profile">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8" dir="rtl">
               <Card>
                 <CardHeader>
-                  <CardTitle className="arabic-text">المعلومات الشخصية</CardTitle>
+                  <CardTitle className="arabic-text text-right">المعلومات الشخصية</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label className="arabic-text">الاسم</Label>
-                    <Input defaultValue={user?.name} className="text-right" />
+                    <Label className="arabic-text text-right block">الاسم</Label>
+                    <Input defaultValue={user?.name} className="text-right" dir="rtl" />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label className="arabic-text">العمر</Label>
-                    <Input type="number" defaultValue={user?.age} />
+                    <Label className="arabic-text text-right block">العمر</Label>
+                    <Input type="number" defaultValue={user?.age} className="text-right" dir="rtl" />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label className="arabic-text">البريد الإلكتروني</Label>
-                    <Input type="email" defaultValue={user?.email} className="text-right" />
+                    <Label className="arabic-text text-right block">البريد الإلكتروني</Label>
+                    <Input type="email" defaultValue={user?.email} className="text-right" dir="rtl" />
                   </div>
                   
                   <Button className="w-full bg-islamic-green hover:bg-green-700 arabic-text">
@@ -567,22 +567,22 @@ export default function HomePage() {
               
               <Card>
                 <CardHeader>
-                  <CardTitle className="arabic-text">تغيير كلمة المرور</CardTitle>
+                  <CardTitle className="arabic-text text-right">تغيير كلمة المرور</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label className="arabic-text">كلمة المرور الحالية</Label>
-                    <Input type="password" className="text-right" />
+                    <Label className="arabic-text text-right block">كلمة المرور الحالية</Label>
+                    <Input type="password" className="text-right" dir="rtl" />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label className="arabic-text">كلمة المرور الجديدة</Label>
-                    <Input type="password" className="text-right" />
+                    <Label className="arabic-text text-right block">كلمة المرور الجديدة</Label>
+                    <Input type="password" className="text-right" dir="rtl" />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label className="arabic-text">تأكيد كلمة المرور</Label>
-                    <Input type="password" className="text-right" />
+                    <Label className="arabic-text text-right block">تأكيد كلمة المرور</Label>
+                    <Input type="password" className="text-right" dir="rtl" />
                   </div>
                   
                   <Button className="w-full bg-islamic-gold hover:bg-yellow-600 arabic-text">
