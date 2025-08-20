@@ -1,0 +1,208 @@
+Absolutely! Here's a **complete, professional English specification** for your **Prayer Tracking App**, covering **all features** based on your original request and our updates — including the **Leaderboard** visible to all users, multilingual support, PostgreSQL schema, and feature breakdown.
+
+---
+
+## 🕌 Prayer Tracker App – Full Technical Specification
+
+### 📝 Project Summary:
+
+A web-based application that allows users to **track their daily prayers**, earn points based on punctuality, and get **daily and monthly achievements**. The app promotes consistency in prayer through a **gamified system** and offers a **leaderboard visible to all users** for motivation.
+
+---
+
+## 🔑 Core Features
+
+### 👤 User Profile
+
+Each user has a profile with:
+
+* `Name`
+* `Age`
+* `Email` (must be unique)
+* `Password` (securely stored – hashed, not visible)
+* Ability to **change password**
+
+---
+
+### 📅 Daily Prayer Tracking
+
+The five daily prayers tracked are:
+
+1. **Fajr**
+2. **Dhuhr**
+3. **Asr**
+4. **Maghrib**
+5. **Isha**
+
+#### Mechanics:
+
+* Each prayer is tracked per day.
+* Users can log a prayer manually.
+* **After 30 hours**, if a user hasn't logged a prayer, the system sends a **reminder notification**.
+* Users can always go back and log missed prayers.
+
+---
+
+### 🎯 Points System
+
+* **5 points** for each prayer performed **on time**
+* **1 point** if the prayer was **late**
+* Points are tracked daily and aggregated monthly
+
+---
+
+### 🔥 Achievements
+
+#### Daily Streaks:
+
+* If a user performs **all five prayers on time** in one day → ✅ **Daily Streak**
+
+#### Monthly Rewards:
+
+* If a user achieves **daily streaks for every day in a month** → they are **eligible for a monthly reward**
+* Every user can **suggest one reward** for the monthly draw
+* On the **1st of each month**, a winner is **randomly selected** from eligible users
+* The reward is selected randomly from among the user-submitted suggestions
+
+---
+
+### 🌐 Multilingual Support
+
+* The app supports **Arabic and English** for:
+
+  * UI text
+  * Prayer names
+  * Date/time formatting
+
+---
+
+### 📊 Leaderboard (Visible to All Users)
+
+An open, public **leaderboard** (not just admin-only) where users can view each other's performance.
+
+#### Leaderboard Features:
+
+| Feature            | Description                                       |
+| ------------------ | ------------------------------------------------- |
+| 🔍 Search          | By name or email                                  |
+| 🔃 Sort            | By points, daily streaks, completed prayers, name |
+| 📆 Filter          | By year and month                                 |
+| 📄 Pagination      | View results in pages (e.g., 20 users per page)   |
+| 🈳 Language Toggle | Arabic / English based on user preference         |
+
+#### Leaderboard Columns:
+
+| Column            | Description                          |
+| ----------------- | ------------------------------------ |
+| Name              | User's full name                     |
+| Age               | User's age                           |
+| Total Points      | Accumulated points in selected month |
+| Daily Streaks     | Number of qualified daily streaks    |
+| Prayers Completed | Total number of prayers logged       |
+| Month             | The month being viewed               |
+
+---
+
+## 🗄️ Database Schema – PostgreSQL
+
+```sql
+-- Users Table
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    age INTEGER CHECK (age > 0),
+    email VARCHAR(150) UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Prayers Table
+CREATE TABLE prayers (
+    id SERIAL PRIMARY KEY,
+    name_en VARCHAR(50) NOT NULL,
+    name_ar VARCHAR(50) NOT NULL,
+    scheduled_time TIME NOT NULL
+);
+
+-- User Prayer Logs
+CREATE TABLE user_prayers (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    prayer_id INTEGER REFERENCES prayers(id) ON DELETE CASCADE,
+    prayer_date DATE NOT NULL,
+    prayed_at TIMESTAMP,
+    is_on_time BOOLEAN,
+    points_awarded INTEGER DEFAULT 0,
+    UNIQUE(user_id, prayer_id, prayer_date)
+);
+
+-- Notifications Table
+CREATE TABLE prayer_notifications (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    prayer_id INTEGER REFERENCES prayers(id),
+    prayer_date DATE,
+    notified_at TIMESTAMP DEFAULT NOW(),
+    is_acknowledged BOOLEAN DEFAULT FALSE
+);
+
+-- Daily Streaks Table
+CREATE TABLE daily_streaks (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id),
+    streak_date DATE NOT NULL,
+    is_qualified BOOLEAN DEFAULT FALSE,
+    UNIQUE(user_id, streak_date)
+);
+
+-- Monthly Rewards Table
+CREATE TABLE monthly_rewards (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id),
+    reward_month DATE NOT NULL,
+    suggested_reward TEXT,
+    is_winner BOOLEAN DEFAULT FALSE,
+    UNIQUE(user_id, reward_month)
+);
+```
+
+---
+
+## 🧠 Backend (Node.js) Suggestions
+
+* **Authentication** using `JWT` or `Session-Based` login
+* **Password security** using `bcrypt`
+* **Reminder Scheduler** using `node-cron` or similar, to send notifications 30 hours after prayer time if not logged
+* **Date/time handling** with `moment-timezone` or `date-fns`
+* **RESTful API** for:
+
+  * User registration, login, profile management
+  * Logging prayers
+  * Viewing streaks and points
+  * Leaderboard data with filters/pagination
+
+---
+
+## 💻 Frontend Table (Leaderboard UI)
+
+Use a modern JavaScript framework like **React** or **Vue**, with support for:
+
+* **Search Bar**
+* **Sortable columns**
+* **Dropdowns for month/year filters**
+* **Pagination controls**
+* **Responsive design**
+* **Multilingual support toggle (Arabic ↔ English)**
+
+Use data grid libraries like:
+
+* `react-table` (for React)
+* `vuetify-data-table` (for Vue)
+* Or external tools like `AG Grid`, `MUI Table`, or `PrimeVue`
+
+---
+
+Would you like me to help you build the initial API endpoints or a frontend leaderboard example in React or Vue?
+
+Let me know what your next step is and I’ll support you with code.
