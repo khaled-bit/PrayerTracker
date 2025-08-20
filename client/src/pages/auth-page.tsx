@@ -125,7 +125,7 @@ export default function AuthPage() {
                   <CardContent>
                     <form onSubmit={handleLogin} className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="login-email" className="arabic-text">البريد الإلكتروني</Label>
+                        <Label htmlFor="login-email" className="arabic-text text-right block">البريد الإلكتروني</Label>
                         <Input
                           id="login-email"
                           type="email"
@@ -134,10 +134,11 @@ export default function AuthPage() {
                           onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
                           required
                           className="text-right"
+                          dir="rtl"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="login-password" className="arabic-text">كلمة المرور</Label>
+                        <Label htmlFor="login-password" className="arabic-text text-right block">كلمة المرور</Label>
                         <Input
                           id="login-password"
                           type="password"
@@ -146,6 +147,7 @@ export default function AuthPage() {
                           onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                           required
                           className="text-right"
+                          dir="rtl"
                         />
                       </div>
                       <Button 
@@ -171,7 +173,7 @@ export default function AuthPage() {
                   <CardContent>
                     <form onSubmit={handleRegister} className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="register-name" className="arabic-text">الاسم الكامل</Label>
+                        <Label htmlFor="register-name" className="arabic-text text-right block">الاسم الكامل</Label>
                         <Input
                           id="register-name"
                           type="text"
@@ -180,10 +182,11 @@ export default function AuthPage() {
                           onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
                           required
                           className="text-right"
+                          dir="rtl"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="register-age" className="arabic-text">العمر</Label>
+                        <Label htmlFor="register-age" className="arabic-text text-right block">العمر</Label>
                         <Input
                           id="register-age"
                           type="number"
@@ -193,12 +196,14 @@ export default function AuthPage() {
                           required
                           min="1"
                           max="120"
+                          className="text-right"
+                          dir="rtl"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="register-country" className="arabic-text">البلد</Label>
+                        <Label htmlFor="register-country" className="arabic-text text-right block">البلد</Label>
                         <Select value={registerData.country} onValueChange={handleCountryChange} required>
-                          <SelectTrigger className="text-right">
+                          <SelectTrigger className="text-right" dir="rtl">
                             <SelectValue placeholder="اختر بلدك" />
                           </SelectTrigger>
                           <SelectContent>
@@ -243,13 +248,13 @@ export default function AuthPage() {
                           </SelectContent>
                         </Select>
                         {registerData.timezone && (
-                          <p className="text-sm text-gray-600 arabic-text">
+                          <p className="text-sm text-gray-600 arabic-text text-right">
                             المنطقة الزمنية: {registerData.timezone}
                           </p>
                         )}
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="register-email" className="arabic-text">البريد الإلكتروني</Label>
+                        <Label htmlFor="register-email" className="arabic-text text-right block">البريد الإلكتروني</Label>
                         <Input
                           id="register-email"
                           type="email"
@@ -258,10 +263,11 @@ export default function AuthPage() {
                           onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
                           required
                           className="text-right"
+                          dir="rtl"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="register-password" className="arabic-text">كلمة المرور</Label>
+                        <Label htmlFor="register-password" className="arabic-text text-right block">كلمة المرور</Label>
                         <Input
                           id="register-password"
                           type="password"
@@ -271,6 +277,7 @@ export default function AuthPage() {
                           required
                           minLength="6"
                           className="text-right"
+                          dir="rtl"
                         />
                       </div>
                       <Button 
