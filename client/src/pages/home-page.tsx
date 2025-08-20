@@ -437,20 +437,21 @@ export default function HomePage() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center space-x-4 space-x-reverse mb-6">
-                  <div className="relative flex-1 max-w-md">
+                <div className="flex items-center justify-end mb-6">
+                  <div className="relative w-80">
                     <Search className="absolute right-3 top-3 h-4 w-4 text-gray-400" />
                     <Input
                       placeholder="البحث بالاسم..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="pr-10 text-right"
+                      dir="rtl"
                     />
                   </div>
                 </div>
 
-                <div className="overflow-x-auto" dir="rtl">
-                  <Table className="w-full" dir="rtl">
+                <div className="overflow-x-auto bg-white rounded-lg border" dir="rtl">
+                  <Table className="w-full border-separate border-spacing-0" dir="rtl">
                     <TableHeader>
                       <TableRow>
                         <TableHead className="text-right arabic-text w-20">الترتيب</TableHead>
@@ -488,16 +489,16 @@ export default function HomePage() {
                             <span className="text-lg font-semibold text-islamic-green">{user.totalPoints}</span>
                           </TableCell>
                           <TableCell className="text-right">
-                            <Badge className="bg-islamic-gold bg-opacity-10 text-islamic-gold">
-                              <Flame className="w-3 h-3 ml-1" />
-                              {user.dailyStreaks}
-                            </Badge>
+                            <div className="flex items-center justify-end">
+                              <span className="text-sm font-semibold text-islamic-gold mr-1">{user.dailyStreaks}</span>
+                              <Flame className="w-3 h-3 text-islamic-gold" />
+                            </div>
                           </TableCell>
                           <TableCell className="text-right">
-                            <Badge className="bg-islamic-green bg-opacity-10 text-islamic-green">
-                              <Flame className="w-3 h-3 ml-1" />
-                              {user.yearlyStreaks}
-                            </Badge>
+                            <div className="flex items-center justify-end">
+                              <span className="text-sm font-semibold text-islamic-green mr-1">{user.yearlyStreaks}</span>
+                              <Flame className="w-3 h-3 text-islamic-green" />
+                            </div>
                           </TableCell>
                           <TableCell className="text-right">{user.prayersCompleted}</TableCell>
                         </TableRow>

@@ -195,6 +195,18 @@
   table[dir="rtl"] th,
   table[dir="rtl"] td {
     text-align: right;
+    padding-right: 16px;
+    padding-left: 8px;
+  }
+
+  table[dir="rtl"] th:first-child,
+  table[dir="rtl"] td:first-child {
+    padding-right: 24px;
+  }
+
+  table[dir="rtl"] th:last-child,
+  table[dir="rtl"] td:last-child {
+    padding-left: 24px;
   }
 
   .streak-ring {
