@@ -187,6 +187,16 @@
     transform: translateY(-2px);
   }
 
+  /* RTL Table Styles */
+  table[dir="rtl"] {
+    direction: rtl;
+  }
+  
+  table[dir="rtl"] th,
+  table[dir="rtl"] td {
+    text-align: right;
+  }
+
   .streak-ring {
     background: conic-gradient(from 0deg, var(--islamic-green) 0deg 216deg, #e5e7eb 216deg 360deg);
   }

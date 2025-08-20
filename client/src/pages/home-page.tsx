@@ -450,38 +450,29 @@ export default function HomePage() {
                 </div>
 
                 <div className="overflow-x-auto" dir="rtl">
-                  <Table className="w-full">
+                  <Table className="w-full" dir="rtl">
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="text-right arabic-text w-28">الصلوات المكتملة</TableHead>
-                        <TableHead className="text-right arabic-text w-24">السلاسل السنوية</TableHead>
-                        <TableHead className="text-right arabic-text w-24">السلاسل الشهرية</TableHead>
-                        <TableHead className="text-right arabic-text w-20">النقاط</TableHead>
-                        <TableHead className="text-right arabic-text w-16">العمر</TableHead>
-                        <TableHead className="text-right arabic-text min-w-40">الاسم</TableHead>
                         <TableHead className="text-right arabic-text w-20">الترتيب</TableHead>
+                        <TableHead className="text-right arabic-text min-w-40">الاسم</TableHead>
+                        <TableHead className="text-right arabic-text w-16">العمر</TableHead>
+                        <TableHead className="text-right arabic-text w-20">النقاط</TableHead>
+                        <TableHead className="text-right arabic-text w-24">السلاسل الشهرية</TableHead>
+                        <TableHead className="text-right arabic-text w-24">السلاسل السنوية</TableHead>
+                        <TableHead className="text-right arabic-text w-28">الصلوات المكتملة</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {leaderboard.users.map((user: any, index: number) => (
                         <TableRow key={user.id}>
-                          <TableCell className="text-right">{user.prayersCompleted}</TableCell>
                           <TableCell className="text-right">
-                            <Badge className="bg-islamic-green bg-opacity-10 text-islamic-green">
-                              <Flame className="w-3 h-3 ml-1" />
-                              {user.yearlyStreaks}
-                            </Badge>
+                            <div className="flex items-center justify-end">
+                              <span className={`text-lg font-bold ${index === 0 ? 'text-islamic-gold' : 'text-gray-600'}`}>
+                                #{user.rank}
+                              </span>
+                              {index === 0 && <Crown className="text-islamic-gold mr-2 h-4 w-4" />}
+                            </div>
                           </TableCell>
-                          <TableCell className="text-right">
-                            <Badge className="bg-islamic-gold bg-opacity-10 text-islamic-gold">
-                              <Flame className="w-3 h-3 ml-1" />
-                              {user.dailyStreaks}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <span className="text-lg font-semibold text-islamic-green">{user.totalPoints}</span>
-                          </TableCell>
-                          <TableCell className="text-right">{user.age}</TableCell>
                           <TableCell className="text-right">
                             <div className="flex items-center justify-end">
                               <span className="text-sm font-medium text-gray-900 arabic-text mr-3">{user.name}</span>
@@ -492,14 +483,23 @@ export default function HomePage() {
                               </div>
                             </div>
                           </TableCell>
+                          <TableCell className="text-right">{user.age}</TableCell>
                           <TableCell className="text-right">
-                            <div className="flex items-center justify-end">
-                              <span className={`text-lg font-bold ${index === 0 ? 'text-islamic-gold' : 'text-gray-600'}`}>
-                                #{user.rank}
-                              </span>
-                              {index === 0 && <Crown className="text-islamic-gold mr-2 h-4 w-4" />}
-                            </div>
+                            <span className="text-lg font-semibold text-islamic-green">{user.totalPoints}</span>
                           </TableCell>
+                          <TableCell className="text-right">
+                            <Badge className="bg-islamic-gold bg-opacity-10 text-islamic-gold">
+                              <Flame className="w-3 h-3 ml-1" />
+                              {user.dailyStreaks}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Badge className="bg-islamic-green bg-opacity-10 text-islamic-green">
+                              <Flame className="w-3 h-3 ml-1" />
+                              {user.yearlyStreaks}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">{user.prayersCompleted}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
