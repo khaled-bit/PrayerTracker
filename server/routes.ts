@@ -4,7 +4,7 @@ import { setupAuth } from "./auth";
 import { storage } from "./storage";
 import { insertUserPrayerSchema } from "@shared/schema";
 import { z } from "zod";
-import bcrypt from "bcryptjs";
+import bcrypt from "bcrypt";
 
 function requireAuth(req: any, res: any, next: any) {
   if (!req.isAuthenticated()) {
