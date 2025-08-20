@@ -64,7 +64,7 @@ app.use((req, res, next) => {
   const port = parseInt(process.env.PORT || '5000', 10);
   server.listen({
     port,
-    host: "localhost",
+    host: "0.0.0.0", // Bind to all interfaces for production deployment
   }, () => {
     log(`serving on port ${port}`);
   });
