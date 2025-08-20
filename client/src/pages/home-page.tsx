@@ -553,9 +553,8 @@ export default function HomePage() {
                   <table className="w-full border-collapse">
                                           <thead>
                         <tr className="bg-gray-50 border-b">
-                          <th className="text-right p-4 font-semibold text-gray-900 arabic-text w-40">الصلوات المكتملة</th>
-                          <th className="text-right p-4 font-semibold text-gray-900 arabic-text w-40">الصلوات</th>
-                          <th className="text-right p-4 font-semibold text-gray-900 arabic-text w-40">السلاسل السنوية</th>
+                           <th className="text-right p-4 font-semibold text-gray-900 arabic-text w-40">صلاوات تمت</th>
+                           <th className="text-right p-4 font-semibold text-gray-900 arabic-text w-40">صلاوات فائتة</th>
                           <th className="text-right p-4 font-semibold text-gray-900 arabic-text w-40">السلاسل الشهرية</th>
                           <th className="text-right p-4 font-semibold text-gray-900 arabic-text w-32">النقاط</th>
                           <th className="text-right p-4 font-semibold text-gray-900 arabic-text w-24">العمر</th>
@@ -570,13 +569,7 @@ export default function HomePage() {
                             <span className="text-sm text-gray-900">{user.prayersCompleted}</span>
                           </td>
                           <td className="text-right p-4">
-                            <span className="text-sm text-gray-900">{user.totalPrayersPrayed}</span>
-                          </td>
-                          <td className="text-right p-4">
-                            <div className="flex items-center gap-2 justify-end">
-                              <span className="text-sm font-semibold text-islamic-green">{user.yearlyStreaks}</span>
-                              <Flame className="w-4 h-4 text-islamic-green" />
-                            </div>
+                            <span className="text-sm text-gray-900">{user.prayersMissed}</span>
                           </td>
                           <td className="text-right p-4">
                             <div className="flex items-center gap-2 justify-end">

@@ -61,16 +61,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const loggedPrayer = await storage.logPrayer(validatedData);
 
       // Update daily streak if all prayers for the day are completed
+      const prayerDateString = validatedData.prayerDate instanceof Date 
+        ? validatedData.prayerDate.toISOString().split('T')[0] 
+        : validatedData.prayerDate;
+        
       const todayPrayers = await storage.getUserPrayersForDate(
         req.user!.id,
-        validatedData.prayerDate
+        prayerDateString
       );
 
       const allPrayersCompleted = todayPrayers.length === 5;
       const allOnTime = todayPrayers.every(p => p.isOnTime);
 
       if (allPrayersCompleted) {
-        await storage.updateDailyStreak(req.user!.id, validatedData.prayerDate, allOnTime);
+        await storage.updateDailyStreak(req.user!.id, prayerDateString, allOnTime);
       }
 
       res.json(loggedPrayer);
@@ -99,7 +103,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const stats = await storage.getUserStats(req.user!.id);
       res.json(stats);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch user stats" });
+      console.error("User stats error:", error);
+      res.status(500).json({ 
+        message: "Failed to fetch user stats",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
 
@@ -115,7 +123,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const leaderboard = await storage.getLeaderboard(year, month, limit, offset, search);
       res.json(leaderboard);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch leaderboard" });
+      console.error("Leaderboard error:", error);
+      res.status(500).json({ 
+        message: "Failed to fetch leaderboard",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
 
