@@ -54,8 +54,7 @@ export default function HomePage() {
   const { user, logoutMutation } = useAuth();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("prayers");
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rewardSuggestion, setRewardSuggestion] = useState("");
@@ -92,11 +91,9 @@ export default function HomePage() {
 
   // Fetch leaderboard
   const { data: leaderboard = { users: [], total: 0 } } = useQuery({
-    queryKey: ["/api/leaderboard", selectedYear, selectedMonth, currentPage, searchQuery],
+    queryKey: ["/api/leaderboard", currentPage, searchQuery],
     queryFn: async () => {
       const params = new URLSearchParams({
-        year: selectedYear.toString(),
-        month: selectedMonth.toString(),
         limit: '20',
         offset: ((currentPage - 1) * 20).toString(),
         ...(searchQuery && { search: searchQuery }),
@@ -141,7 +138,8 @@ export default function HomePage() {
   // Reward suggestion mutation
   const submitRewardMutation = useMutation({
     mutationFn: async (suggestion: string) => {
-      const month = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-01`;
+      const now = new Date();
+      const month = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-01`;
       return await apiRequest("POST", "/api/rewards/suggest", {
         month,
         suggestion,
@@ -416,23 +414,7 @@ export default function HomePage() {
           <TabsContent value="leaderboard">
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between" dir="rtl">
-                  <div className="flex items-center space-x-4 space-x-reverse">
-                    <Select value={`${selectedYear}-${selectedMonth}`} onValueChange={(value) => {
-                      const [year, month] = value.split('-');
-                      setSelectedYear(parseInt(year));
-                      setSelectedMonth(parseInt(month));
-                    }}>
-                      <SelectTrigger className="w-40">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="2024-1">يناير 2024</SelectItem>
-                        <SelectItem value="2024-2">فبراير 2024</SelectItem>
-                        <SelectItem value="2024-3">مارس 2024</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div className="flex items-center justify-end" dir="rtl">
                   <CardTitle className="arabic-text">لوحة المتصدرين</CardTitle>
                 </div>
               </CardHeader>
