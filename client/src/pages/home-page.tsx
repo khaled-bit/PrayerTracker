@@ -475,14 +475,7 @@ export default function HomePage() {
                             </div>
                           </td>
                           <td className="text-right p-4">
-                            <div className="flex items-center gap-3 justify-end">
-                              <span className="text-sm font-medium text-gray-900 arabic-text">{user.name}</span>
-                              <div className="w-8 h-8 bg-islamic-green rounded-full flex items-center justify-center flex-shrink-0">
-                                <span className="text-white text-xs font-medium">
-                                  {user.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
-                                </span>
-                              </div>
-                            </div>
+                            <span className="text-sm font-medium text-gray-900 arabic-text">{user.name}</span>
                           </td>
                           <td className="text-right p-4">
                             <span className="text-sm text-gray-900">{user.age}</span>
