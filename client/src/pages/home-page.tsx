@@ -450,61 +450,76 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                <div className="overflow-x-auto bg-white rounded-lg border" dir="rtl">
-                  <table className="w-full border-collapse" dir="rtl">
-                    <thead className="bg-gray-50">
-                      <tr className="border-b">
-                        <th className="text-right arabic-text px-4 py-3 font-semibold text-gray-700" style={{width: "80px"}}>الترتيب</th>
-                        <th className="text-right arabic-text px-4 py-3 font-semibold text-gray-700" style={{width: "200px"}}>الاسم</th>
-                        <th className="text-right arabic-text px-4 py-3 font-semibold text-gray-700" style={{width: "80px"}}>العمر</th>
-                        <th className="text-right arabic-text px-4 py-3 font-semibold text-gray-700" style={{width: "100px"}}>النقاط</th>
-                        <th className="text-right arabic-text px-4 py-3 font-semibold text-gray-700" style={{width: "120px"}}>السلاسل الشهرية</th>
-                        <th className="text-right arabic-text px-4 py-3 font-semibold text-gray-700" style={{width: "120px"}}>السلاسل السنوية</th>
-                        <th className="text-right arabic-text px-4 py-3 font-semibold text-gray-700" style={{width: "140px"}}>الصلوات المكتملة</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {leaderboard.users.map((user: any, index: number) => (
-                        <tr key={user.id} className="border-b hover:bg-gray-50">
-                          <td className="text-right px-4 py-3" style={{width: "80px"}}>
-                            <div className="flex items-center justify-end">
-                              <span className={`text-lg font-bold ${index === 0 ? 'text-islamic-gold' : 'text-gray-600'}`}>
-                                #{user.rank}
-                              </span>
-                              {index === 0 && <Crown className="text-islamic-gold mr-2 h-4 w-4" />}
-                            </div>
-                          </td>
-                          <td className="text-right px-4 py-3" style={{width: "200px"}}>
-                            <div className="flex items-center justify-end">
-                              <span className="text-sm font-medium text-gray-900 arabic-text mr-3 truncate">{user.name}</span>
-                              <div className="w-8 h-8 bg-islamic-green rounded-full flex items-center justify-center flex-shrink-0">
-                                <span className="text-white text-sm font-medium">
-                                  {user.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+                <div className="bg-white rounded-lg border overflow-hidden" dir="rtl">
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-full" dir="rtl" style={{tableLayout: "fixed"}}>
+                      <colgroup>
+                        <col style={{width: "100px"}} />
+                        <col style={{width: "200px"}} />
+                        <col style={{width: "80px"}} />
+                        <col style={{width: "120px"}} />
+                        <col style={{width: "140px"}} />
+                        <col style={{width: "140px"}} />
+                        <col style={{width: "160px"}} />
+                      </colgroup>
+                      <thead className="bg-gray-50 border-b">
+                        <tr>
+                          <th className="px-6 py-4 text-right font-semibold text-gray-900 arabic-text">الترتيب</th>
+                          <th className="px-6 py-4 text-right font-semibold text-gray-900 arabic-text">الاسم</th>
+                          <th className="px-6 py-4 text-right font-semibold text-gray-900 arabic-text">العمر</th>
+                          <th className="px-6 py-4 text-right font-semibold text-gray-900 arabic-text">النقاط</th>
+                          <th className="px-6 py-4 text-right font-semibold text-gray-900 arabic-text">السلاسل الشهرية</th>
+                          <th className="px-6 py-4 text-right font-semibold text-gray-900 arabic-text">السلاسل السنوية</th>
+                          <th className="px-6 py-4 text-right font-semibold text-gray-900 arabic-text">الصلوات المكتملة</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {leaderboard.users.map((user: any, index: number) => (
+                          <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+                            <td className="px-6 py-4 text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                {index === 0 && <Crown className="text-islamic-gold h-4 w-4" />}
+                                <span className={`text-lg font-bold ${index === 0 ? 'text-islamic-gold' : 'text-gray-900'}`}>
+                                  #{user.rank}
                                 </span>
                               </div>
-                            </div>
-                          </td>
-                          <td className="text-right px-4 py-3" style={{width: "80px"}}>{user.age}</td>
-                          <td className="text-right px-4 py-3" style={{width: "100px"}}>
-                            <span className="text-lg font-semibold text-islamic-green">{user.totalPoints}</span>
-                          </td>
-                          <td className="text-right px-4 py-3" style={{width: "120px"}}>
-                            <div className="flex items-center justify-end">
-                              <span className="text-sm font-semibold text-islamic-gold mr-1">{user.dailyStreaks}</span>
-                              <Flame className="w-3 h-3 text-islamic-gold flex-shrink-0" />
-                            </div>
-                          </td>
-                          <td className="text-right px-4 py-3" style={{width: "120px"}}>
-                            <div className="flex items-center justify-end">
-                              <span className="text-sm font-semibold text-islamic-green mr-1">{user.yearlyStreaks}</span>
-                              <Flame className="w-3 h-3 text-islamic-green flex-shrink-0" />
-                            </div>
-                          </td>
-                          <td className="text-right px-4 py-3" style={{width: "140px"}}>{user.prayersCompleted}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <div className="flex items-center justify-end gap-3">
+                                <span className="text-sm font-medium text-gray-900 arabic-text">{user.name}</span>
+                                <div className="w-8 h-8 bg-islamic-green rounded-full flex items-center justify-center flex-shrink-0">
+                                  <span className="text-white text-xs font-medium">
+                                    {user.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+                                  </span>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <span className="text-sm text-gray-900">{user.age}</span>
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <span className="text-lg font-semibold text-islamic-green">{user.totalPoints}</span>
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                <span className="text-sm font-semibold text-islamic-gold">{user.dailyStreaks}</span>
+                                <Flame className="w-4 h-4 text-islamic-gold" />
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                <span className="text-sm font-semibold text-islamic-green">{user.yearlyStreaks}</span>
+                                <Flame className="w-4 h-4 text-islamic-green" />
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <span className="text-sm text-gray-900">{user.prayersCompleted}</span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
 
                 {/* Pagination */}
