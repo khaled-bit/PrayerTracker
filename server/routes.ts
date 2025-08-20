@@ -4,6 +4,7 @@ import { setupAuth } from "./auth";
 import { storage } from "./storage";
 import { insertUserPrayerSchema } from "@shared/schema";
 import { z } from "zod";
+import bcrypt from "bcryptjs";
 
 function requireAuth(req: any, res: any, next: any) {
   if (!req.isAuthenticated()) {
@@ -15,7 +16,7 @@ function requireAuth(req: any, res: any, next: any) {
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize database with default prayers
   await storage.initializePrayers();
-  
+
   // Setup authentication routes
   setupAuth(app);
 
@@ -38,16 +39,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const loggedPrayer = await storage.logPrayer(validatedData);
-      
+
       // Update daily streak if all prayers for the day are completed
       const todayPrayers = await storage.getUserPrayersForDate(
         req.user!.id,
         validatedData.prayerDate
       );
-      
+
       const allPrayersCompleted = todayPrayers.length === 5;
       const allOnTime = todayPrayers.every(p => p.isOnTime);
-      
+
       if (allPrayersCompleted) {
         await storage.updateDailyStreak(req.user!.id, validatedData.prayerDate, allOnTime);
       }
@@ -117,7 +118,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { name, age } = req.body;
       const updates: any = {};
-      
+
       if (name) updates.name = name;
       if (age) updates.age = parseInt(age);
 
@@ -125,6 +126,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(updatedUser);
     } catch (error) {
       res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
+  // Change password route
+  app.patch("/api/user/password", requireAuth, async (req, res) => {
+    try {
+      const { currentPassword, newPassword } = req.body;
+      const userId = req.user!.id;
+
+      const user = await storage.getUserById(userId); // Assuming a getUserById method exists
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const isMatch = await bcrypt.compare(currentPassword, user.passwordHash); // Assuming passwordHash is stored
+
+      if (!isMatch) {
+        return res.status(400).json({ message: "Incorrect current password" });
+      }
+
+      const salt = await bcrypt.genSalt(10);
+      const passwordHash = await bcrypt.hash(newPassword, salt);
+
+      await storage.updateUserPassword(userId, passwordHash); // Assuming an updateUserPassword method exists
+
+      res.json({ message: "Password updated successfully" });
+    } catch (error) {
+      console.error("Password change error:", error);
+      res.status(500).json({ message: "Failed to change password" });
     }
   });
 

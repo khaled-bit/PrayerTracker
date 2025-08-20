@@ -59,6 +59,16 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rewardSuggestion, setRewardSuggestion] = useState("");
+  const [profileData, setProfileData] = useState({
+    name: user?.name || "",
+    age: user?.age || "",
+    email: user?.email || "",
+  });
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -146,6 +156,41 @@ export default function HomePage() {
     },
   });
 
+  // Profile update mutation
+  const updateProfileMutation = useMutation({
+    mutationFn: async (data: { name: string; age: number }) => {
+      return await apiRequest("PATCH", "/api/user/profile", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      toast({
+        title: "تم حفظ التغييرات",
+        description: "تم تحديث ملفك الشخصي بنجاح",
+      });
+    },
+  });
+
+  // Password change mutation
+  const changePasswordMutation = useMutation({
+    mutationFn: async (data: { currentPassword: string; newPassword: string }) => {
+      return await apiRequest("PATCH", "/api/user/password", data);
+    },
+    onSuccess: () => {
+      setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      toast({
+        title: "تم تغيير كلمة المرور",
+        description: "تم تغيير كلمة المرور بنجاح",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "خطأ",
+        description: error.message || "فشل في تغيير كلمة المرور",
+        variant: "destructive",
+      });
+    },
+  });
+
   const getPrayerStatus = (prayerId: number) => {
     const logged = todayPrayers.find(p => p.prayerId === prayerId);
     if (logged) {
@@ -188,6 +233,30 @@ export default function HomePage() {
     const hour12 = parseInt(hours) % 12 || 12;
     const period = parseInt(hours) >= 12 ? 'مساءً' : 'صباحاً';
     return `${hour12}:${minutes} ${period}`;
+  };
+
+  const handleProfileUpdate = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateProfileMutation.mutate({
+      name: profileData.name,
+      age: parseInt(profileData.age),
+    });
+  };
+
+  const handlePasswordChange = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast({
+        title: "خطأ",
+        description: "كلمة المرور الجديدة وتأكيدها غير متطابقتين",
+        variant: "destructive",
+      });
+      return;
+    }
+    changePasswordMutation.mutate({
+      currentPassword: passwordData.currentPassword,
+      newPassword: passwordData.newPassword,
+    });
   };
 
   return (
@@ -380,30 +449,39 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto" dir="rtl">
                   <Table className="w-full">
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="text-right arabic-text w-20">الترتيب</TableHead>
-                        <TableHead className="text-right arabic-text min-w-40">الاسم</TableHead>
-                        <TableHead className="text-right arabic-text w-16">العمر</TableHead>
-                        <TableHead className="text-right arabic-text w-20">النقاط</TableHead>
-                        <TableHead className="text-right arabic-text w-24">السلاسل الشهرية</TableHead>
-                        <TableHead className="text-right arabic-text w-24">السلاسل السنوية</TableHead>
                         <TableHead className="text-right arabic-text w-28">الصلوات المكتملة</TableHead>
+                        <TableHead className="text-right arabic-text w-24">السلاسل السنوية</TableHead>
+                        <TableHead className="text-right arabic-text w-24">السلاسل الشهرية</TableHead>
+                        <TableHead className="text-right arabic-text w-20">النقاط</TableHead>
+                        <TableHead className="text-right arabic-text w-16">العمر</TableHead>
+                        <TableHead className="text-right arabic-text min-w-40">الاسم</TableHead>
+                        <TableHead className="text-right arabic-text w-20">الترتيب</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {leaderboard.users.map((user: any, index: number) => (
                         <TableRow key={user.id}>
+                          <TableCell className="text-right">{user.prayersCompleted}</TableCell>
                           <TableCell className="text-right">
-                            <div className="flex items-center justify-end">
-                              <span className={`text-lg font-bold ${index === 0 ? 'text-islamic-gold' : 'text-gray-600'}`}>
-                                #{user.rank}
-                              </span>
-                              {index === 0 && <Crown className="text-islamic-gold mr-2 h-4 w-4" />}
-                            </div>
+                            <Badge className="bg-islamic-green bg-opacity-10 text-islamic-green">
+                              <Flame className="w-3 h-3 ml-1" />
+                              {user.yearlyStreaks}
+                            </Badge>
                           </TableCell>
+                          <TableCell className="text-right">
+                            <Badge className="bg-islamic-gold bg-opacity-10 text-islamic-gold">
+                              <Flame className="w-3 h-3 ml-1" />
+                              {user.dailyStreaks}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <span className="text-lg font-semibold text-islamic-green">{user.totalPoints}</span>
+                          </TableCell>
+                          <TableCell className="text-right">{user.age}</TableCell>
                           <TableCell className="text-right">
                             <div className="flex items-center justify-end">
                               <span className="text-sm font-medium text-gray-900 arabic-text mr-3">{user.name}</span>
@@ -414,23 +492,14 @@ export default function HomePage() {
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell className="text-right">{user.age}</TableCell>
                           <TableCell className="text-right">
-                            <span className="text-lg font-semibold text-islamic-green">{user.totalPoints}</span>
+                            <div className="flex items-center justify-end">
+                              <span className={`text-lg font-bold ${index === 0 ? 'text-islamic-gold' : 'text-gray-600'}`}>
+                                #{user.rank}
+                              </span>
+                              {index === 0 && <Crown className="text-islamic-gold mr-2 h-4 w-4" />}
+                            </div>
                           </TableCell>
-                          <TableCell className="text-right">
-                            <Badge className="bg-islamic-gold bg-opacity-10 text-islamic-gold">
-                              <Flame className="w-3 h-3 ml-1" />
-                              {user.dailyStreaks}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Badge className="bg-islamic-green bg-opacity-10 text-islamic-green">
-                              <Flame className="w-3 h-3 ml-1" />
-                              {user.yearlyStreaks}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">{user.prayersCompleted}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -543,25 +612,53 @@ export default function HomePage() {
                 <CardHeader>
                   <CardTitle className="arabic-text text-right">المعلومات الشخصية</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label className="arabic-text text-right block">الاسم</Label>
-                    <Input defaultValue={user?.name} className="text-right" dir="rtl" />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label className="arabic-text text-right block">العمر</Label>
-                    <Input type="number" defaultValue={user?.age} className="text-right" dir="rtl" />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label className="arabic-text text-right block">البريد الإلكتروني</Label>
-                    <Input type="email" defaultValue={user?.email} className="text-right" dir="rtl" />
-                  </div>
-                  
-                  <Button className="w-full bg-islamic-green hover:bg-green-700 arabic-text">
-                    حفظ التغييرات
-                  </Button>
+                <CardContent>
+                  <form onSubmit={handleProfileUpdate} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="arabic-text text-right block">الاسم</Label>
+                      <Input 
+                        value={profileData.name}
+                        onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
+                        className="text-right" 
+                        dir="rtl" 
+                        required
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label className="arabic-text text-right block">العمر</Label>
+                      <Input 
+                        type="number" 
+                        value={profileData.age}
+                        onChange={(e) => setProfileData({ ...profileData, age: e.target.value })}
+                        className="text-right" 
+                        dir="rtl" 
+                        required
+                        min="1"
+                        max="120"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label className="arabic-text text-right block">البريد الإلكتروني</Label>
+                      <Input 
+                        type="email" 
+                        value={profileData.email}
+                        className="text-right bg-gray-100" 
+                        dir="rtl" 
+                        disabled
+                        title="لا يمكن تغيير البريد الإلكتروني"
+                      />
+                    </div>
+                    
+                    <Button 
+                      type="submit"
+                      className="w-full bg-islamic-green hover:bg-green-700 arabic-text"
+                      disabled={updateProfileMutation.isPending}
+                    >
+                      {updateProfileMutation.isPending ? "جاري الحفظ..." : "حفظ التغييرات"}
+                    </Button>
+                  </form>
                 </CardContent>
               </Card>
               
@@ -569,25 +666,54 @@ export default function HomePage() {
                 <CardHeader>
                   <CardTitle className="arabic-text text-right">تغيير كلمة المرور</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label className="arabic-text text-right block">كلمة المرور الحالية</Label>
-                    <Input type="password" className="text-right" dir="rtl" />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label className="arabic-text text-right block">كلمة المرور الجديدة</Label>
-                    <Input type="password" className="text-right" dir="rtl" />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label className="arabic-text text-right block">تأكيد كلمة المرور</Label>
-                    <Input type="password" className="text-right" dir="rtl" />
-                  </div>
-                  
-                  <Button className="w-full bg-islamic-gold hover:bg-yellow-600 arabic-text">
-                    تغيير كلمة المرور
-                  </Button>
+                <CardContent>
+                  <form onSubmit={handlePasswordChange} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="arabic-text text-right block">كلمة المرور الحالية</Label>
+                      <Input 
+                        type="password" 
+                        value={passwordData.currentPassword}
+                        onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                        className="text-right" 
+                        dir="rtl" 
+                        required
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label className="arabic-text text-right block">كلمة المرور الجديدة</Label>
+                      <Input 
+                        type="password" 
+                        value={passwordData.newPassword}
+                        onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                        className="text-right" 
+                        dir="rtl" 
+                        required
+                        minLength="6"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label className="arabic-text text-right block">تأكيد كلمة المرور</Label>
+                      <Input 
+                        type="password" 
+                        value={passwordData.confirmPassword}
+                        onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                        className="text-right" 
+                        dir="rtl" 
+                        required
+                        minLength="6"
+                      />
+                    </div>
+                    
+                    <Button 
+                      type="submit"
+                      className="w-full bg-islamic-gold hover:bg-yellow-600 arabic-text"
+                      disabled={changePasswordMutation.isPending}
+                    >
+                      {changePasswordMutation.isPending ? "جاري التغيير..." : "تغيير كلمة المرور"}
+                    </Button>
+                  </form>
                 </CardContent>
               </Card>
             </div>
