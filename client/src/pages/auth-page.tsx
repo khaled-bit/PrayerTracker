@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Church, Star, Trophy, Heart } from "lucide-react";
 
 export default function AuthPage() {
@@ -21,6 +22,56 @@ export default function AuthPage() {
     country: "",
     timezone: ""
   });
+
+  const countryTimezones = {
+    "السعودية": "Asia/Riyadh",
+    "الإمارات": "Asia/Dubai",
+    "قطر": "Asia/Qatar",
+    "الكويت": "Asia/Kuwait",
+    "البحرين": "Asia/Bahrain",
+    "عمان": "Asia/Muscat",
+    "الأردن": "Asia/Amman",
+    "لبنان": "Asia/Beirut",
+    "سوريا": "Asia/Damascus",
+    "العراق": "Asia/Baghdad",
+    "فلسطين": "Asia/Gaza",
+    "مصر": "Africa/Cairo",
+    "المغرب": "Africa/Casablanca",
+    "الجزائر": "Africa/Algiers",
+    "تونس": "Africa/Tunis",
+    "ليبيا": "Africa/Tripoli",
+    "تركيا": "Europe/Istanbul",
+    "إيران": "Asia/Tehran",
+    "أفغانستان": "Asia/Kabul",
+    "باكستان": "Asia/Karachi",
+    "بنغلاديش": "Asia/Dhaka",
+    "الهند": "Asia/Kolkata",
+    "إندونيسيا": "Asia/Jakarta",
+    "ماليزيا": "Asia/Kuala_Lumpur",
+    "سنغافورة": "Asia/Singapore",
+    "بروناي": "Asia/Brunei",
+    "نيجيريا": "Africa/Lagos",
+    "السودان": "Africa/Khartoum",
+    "الصومال": "Africa/Mogadishu",
+    "إثيوبيا": "Africa/Addis_Ababa",
+    "كينيا": "Africa/Nairobi",
+    "أوزبكستان": "Asia/Tashkent",
+    "كازاخستان": "Asia/Almaty",
+    "قيرغيزستان": "Asia/Bishkek",
+    "أذربيجان": "Asia/Baku",
+    "ألبانيا": "Europe/Tirane",
+    "البوسنة والهرسك": "Europe/Sarajevo",
+    "كوسوفو": "Europe/Belgrade",
+  };
+
+  const handleCountryChange = (country: string) => {
+    const timezone = countryTimezones[country as keyof typeof countryTimezones] || "UTC";
+    setRegisterData({ 
+      ...registerData, 
+      country, 
+      timezone 
+    });
+  };
 
   // Redirect if already logged in
   if (user) {
@@ -146,27 +197,56 @@ export default function AuthPage() {
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="register-country" className="arabic-text">البلد</Label>
-                        <Input
-                          id="register-country"
-                          type="text"
-                          placeholder="أدخل بلدك"
-                          value={registerData.country}
-                          onChange={(e) => setRegisterData({ ...registerData, country: e.target.value })}
-                          required
-                          className="text-right"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="register-timezone" className="arabic-text">المنطقة الزمنية</Label>
-                        <Input
-                          id="register-timezone"
-                          type="text"
-                          placeholder="مثال: Asia/Riyadh"
-                          value={registerData.timezone}
-                          onChange={(e) => setRegisterData({ ...registerData, timezone: e.target.value })}
-                          required
-                          className="text-right"
-                        />
+                        <Select value={registerData.country} onValueChange={handleCountryChange} required>
+                          <SelectTrigger className="text-right">
+                            <SelectValue placeholder="اختر بلدك" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="السعودية">السعودية</SelectItem>
+                            <SelectItem value="الإمارات">الإمارات العربية المتحدة</SelectItem>
+                            <SelectItem value="قطر">قطر</SelectItem>
+                            <SelectItem value="الكويت">الكويت</SelectItem>
+                            <SelectItem value="البحرين">البحرين</SelectItem>
+                            <SelectItem value="عمان">عُمان</SelectItem>
+                            <SelectItem value="الأردن">الأردن</SelectItem>
+                            <SelectItem value="لبنان">لبنان</SelectItem>
+                            <SelectItem value="سوريا">سوريا</SelectItem>
+                            <SelectItem value="العراق">العراق</SelectItem>
+                            <SelectItem value="فلسطين">فلسطين</SelectItem>
+                            <SelectItem value="مصر">مصر</SelectItem>
+                            <SelectItem value="المغرب">المغرب</SelectItem>
+                            <SelectItem value="الجزائر">الجزائر</SelectItem>
+                            <SelectItem value="تونس">تونس</SelectItem>
+                            <SelectItem value="ليبيا">ليبيا</SelectItem>
+                            <SelectItem value="تركيا">تركيا</SelectItem>
+                            <SelectItem value="إيران">إيران</SelectItem>
+                            <SelectItem value="أفغانستان">أفغانستان</SelectItem>
+                            <SelectItem value="باكستان">باكستان</SelectItem>
+                            <SelectItem value="بنغلاديش">بنغلاديش</SelectItem>
+                            <SelectItem value="الهند">الهند</SelectItem>
+                            <SelectItem value="إندونيسيا">إندونيسيا</SelectItem>
+                            <SelectItem value="ماليزيا">ماليزيا</SelectItem>
+                            <SelectItem value="سنغافورة">سنغافورة</SelectItem>
+                            <SelectItem value="بروناي">بروناي</SelectItem>
+                            <SelectItem value="نيجيريا">نيجيريا</SelectItem>
+                            <SelectItem value="السودان">السودان</SelectItem>
+                            <SelectItem value="الصومال">الصومال</SelectItem>
+                            <SelectItem value="إثيوبيا">إثيوبيا</SelectItem>
+                            <SelectItem value="كينيا">كينيا</SelectItem>
+                            <SelectItem value="أوزبكستان">أوزبكستان</SelectItem>
+                            <SelectItem value="كازاخستان">كازاخستان</SelectItem>
+                            <SelectItem value="قيرغيزستان">قيرغيزستان</SelectItem>
+                            <SelectItem value="أذربيجان">أذربيجان</SelectItem>
+                            <SelectItem value="ألبانيا">ألبانيا</SelectItem>
+                            <SelectItem value="البوسنة والهرسك">البوسنة والهرسك</SelectItem>
+                            <SelectItem value="كوسوفو">كوسوفو</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {registerData.timezone && (
+                          <p className="text-sm text-gray-600 arabic-text">
+                            المنطقة الزمنية: {registerData.timezone}
+                          </p>
+                        )}
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="register-email" className="arabic-text">البريد الإلكتروني</Label>
