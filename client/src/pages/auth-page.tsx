@@ -17,7 +17,9 @@ export default function AuthPage() {
     name: "", 
     email: "", 
     password: "", 
-    age: "" 
+    age: "",
+    country: "",
+    timezone: ""
   });
 
   // Redirect if already logged in
@@ -36,6 +38,8 @@ export default function AuthPage() {
     registerMutation.mutate({
       ...registerData,
       age: parseInt(registerData.age),
+      country: registerData.country,
+      timezone: registerData.timezone,
     });
   };
 
@@ -138,6 +142,30 @@ export default function AuthPage() {
                           required
                           min="1"
                           max="120"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="register-country" className="arabic-text">البلد</Label>
+                        <Input
+                          id="register-country"
+                          type="text"
+                          placeholder="أدخل بلدك"
+                          value={registerData.country}
+                          onChange={(e) => setRegisterData({ ...registerData, country: e.target.value })}
+                          required
+                          className="text-right"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="register-timezone" className="arabic-text">المنطقة الزمنية</Label>
+                        <Input
+                          id="register-timezone"
+                          type="text"
+                          placeholder="مثال: Asia/Riyadh"
+                          value={registerData.timezone}
+                          onChange={(e) => setRegisterData({ ...registerData, timezone: e.target.value })}
+                          required
+                          className="text-right"
                         />
                       </div>
                       <div className="space-y-2">

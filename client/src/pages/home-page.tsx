@@ -32,6 +32,7 @@ import {
   ChevronRight
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Prayer, UserPrayer } from "@shared/schema";
 
 const prayerIcons = {
   1: Moon,      // Fajr
@@ -62,28 +63,39 @@ export default function HomePage() {
   const today = new Date().toISOString().split('T')[0];
 
   // Fetch user prayers for today
-  const { data: todayPrayers = [] } = useQuery({
+  const { data: todayPrayers = [] } = useQuery<UserPrayer[]>({
     queryKey: ["/api/prayers/date", today],
     queryFn: getQueryFn({ on401: "throw" }),
   });
 
   // Fetch all prayers
-  const { data: prayers = [] } = useQuery({
+  const { data: prayers = [] } = useQuery<Prayer[]>({
     queryKey: ["/api/prayers"],
     queryFn: getQueryFn({ on401: "throw" }),
   });
 
   // Fetch user stats
-  const { data: userStats } = useQuery({
+  const { data: userStats = { monthlyPoints: 0, currentStreak: 0, monthlyRank: 0, totalUsers: 0 } } = useQuery({
     queryKey: ["/api/user/stats"],
     queryFn: getQueryFn({ on401: "throw" }),
   });
 
   // Fetch leaderboard
-  const { data: leaderboard } = useQuery({
-    queryKey: ["/api/leaderboard", selectedYear, selectedMonth, currentPage],
-    queryFn: getQueryFn({ on401: "throw" }),
-    queryKey: [`/api/leaderboard?year=${selectedYear}&month=${selectedMonth}&limit=20&offset=${(currentPage - 1) * 20}`],
+  const { data: leaderboard = { users: [], total: 0 } } = useQuery({
+    queryKey: ["/api/leaderboard", selectedYear, selectedMonth, currentPage, searchQuery],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        year: selectedYear.toString(),
+        month: selectedMonth.toString(),
+        limit: '20',
+        offset: ((currentPage - 1) * 20).toString(),
+        ...(searchQuery && { search: searchQuery }),
+      });
+      const response = await fetch(`/api/leaderboard?${params}`);
+      if (!response.ok) throw new Error('Failed to fetch leaderboard');
+      return response.json();
+    },
+    staleTime: 5000,
   });
 
   // Prayer logging mutation
@@ -152,7 +164,7 @@ export default function HomePage() {
     return "upcoming";
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, prayerId: number) => {
     switch (status) {
       case "on-time":
         return <Badge className="bg-islamic-green text-white"><Check className="w-3 h-3 ml-1" />في الوقت</Badge>;
@@ -161,7 +173,7 @@ export default function HomePage() {
       case "missed":
         return <Button 
           size="sm" 
-          onClick={() => logPrayerMutation.mutate({ prayerId: prayers.find(p => p.nameAr === status)?.id || 0 })}
+          onClick={() => logPrayerMutation.mutate({ prayerId })}
           className="bg-islamic-green hover:bg-green-700 text-white"
         >
           تسجيل الصلاة
@@ -169,6 +181,13 @@ export default function HomePage() {
       default:
         return <Badge variant="outline" className="text-gray-600"><HourglassIcon className="w-3 h-3 ml-1" />قادمة</Badge>;
     }
+  };
+
+  const formatTimeInArabic = (time: string) => {
+    const [hours, minutes] = time.split(':');
+    const hour12 = parseInt(hours) % 12 || 12;
+    const period = parseInt(hours) >= 12 ? 'مساءً' : 'صباحاً';
+    return `${hour12}:${minutes} ${period}`;
   };
 
   return (
@@ -303,11 +322,11 @@ export default function HomePage() {
                       </div>
                       
                       <div className="mb-4">
-                        <p className="text-xl font-bold text-islamic-navy">{prayer.scheduledTime}</p>
+                        <p className="text-xl font-bold text-islamic-navy arabic-text">{formatTimeInArabic(prayer.scheduledTime)}</p>
                       </div>
                       
                       <div className="mb-4">
-                        {getStatusBadge(status)}
+                        {getStatusBadge(status, prayer.id)}
                       </div>
                       
                       {loggedPrayer && (
@@ -353,7 +372,7 @@ export default function HomePage() {
                   <div className="relative flex-1 max-w-md">
                     <Search className="absolute right-3 top-3 h-4 w-4 text-gray-400" />
                     <Input
-                      placeholder="البحث بالاسم أو البريد الإلكتروني..."
+                      placeholder="البحث بالاسم..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="pr-10 text-right"
@@ -361,58 +380,67 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="text-right arabic-text">الترتيب</TableHead>
-                      <TableHead className="text-right arabic-text">الاسم</TableHead>
-                      <TableHead className="text-right arabic-text">العمر</TableHead>
-                      <TableHead className="text-right arabic-text">النقاط</TableHead>
-                      <TableHead className="text-right arabic-text">السلاسل</TableHead>
-                      <TableHead className="text-right arabic-text">الصلوات المكتملة</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {leaderboard?.users?.map((user, index) => (
-                      <TableRow key={user.id}>
-                        <TableCell>
-                          <div className="flex items-center">
-                            <span className={`text-lg font-bold ${index === 0 ? 'text-islamic-gold' : 'text-gray-600'}`}>
-                              #{user.rank}
-                            </span>
-                            {index === 0 && <Crown className="text-islamic-gold mr-2 h-4 w-4" />}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center">
-                            <div className="w-8 h-8 bg-islamic-green rounded-full flex items-center justify-center ml-3">
-                              <span className="text-white text-sm font-medium">
-                                {user.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                              </span>
-                            </div>
-                            <span className="text-sm font-medium text-gray-900 arabic-text">{user.name}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>{user.age}</TableCell>
-                        <TableCell>
-                          <span className="text-lg font-semibold text-islamic-green">{user.totalPoints}</span>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className="bg-islamic-gold bg-opacity-10 text-islamic-gold">
-                            <Flame className="w-3 h-3 ml-1" />
-                            {user.dailyStreaks}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{user.prayersCompleted}</TableCell>
+                <div className="overflow-x-auto">
+                  <Table className="w-full">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-right arabic-text w-20">الترتيب</TableHead>
+                        <TableHead className="text-right arabic-text min-w-40">الاسم</TableHead>
+                        <TableHead className="text-right arabic-text w-16">العمر</TableHead>
+                        <TableHead className="text-right arabic-text w-20">النقاط</TableHead>
+                        <TableHead className="text-right arabic-text w-24">السلاسل الشهرية</TableHead>
+                        <TableHead className="text-right arabic-text w-24">السلاسل السنوية</TableHead>
+                        <TableHead className="text-right arabic-text w-28">الصلوات المكتملة</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {leaderboard.users.map((user: any, index: number) => (
+                        <TableRow key={user.id}>
+                          <TableCell className="text-right">
+                            <div className="flex items-center justify-end">
+                              <span className={`text-lg font-bold ${index === 0 ? 'text-islamic-gold' : 'text-gray-600'}`}>
+                                #{user.rank}
+                              </span>
+                              {index === 0 && <Crown className="text-islamic-gold mr-2 h-4 w-4" />}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex items-center justify-end">
+                              <span className="text-sm font-medium text-gray-900 arabic-text mr-3">{user.name}</span>
+                              <div className="w-8 h-8 bg-islamic-green rounded-full flex items-center justify-center">
+                                <span className="text-white text-sm font-medium">
+                                  {user.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+                                </span>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right">{user.age}</TableCell>
+                          <TableCell className="text-right">
+                            <span className="text-lg font-semibold text-islamic-green">{user.totalPoints}</span>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Badge className="bg-islamic-gold bg-opacity-10 text-islamic-gold">
+                              <Flame className="w-3 h-3 ml-1" />
+                              {user.dailyStreaks}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Badge className="bg-islamic-green bg-opacity-10 text-islamic-green">
+                              <Flame className="w-3 h-3 ml-1" />
+                              {user.yearlyStreaks}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">{user.prayersCompleted}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
 
                 {/* Pagination */}
                 <div className="flex items-center justify-between mt-6">
                   <div className="text-sm text-gray-600 arabic-text">
-                    عرض {(currentPage - 1) * 20 + 1}-{Math.min(currentPage * 20, leaderboard?.total || 0)} من {leaderboard?.total || 0} مستخدم
+                    عرض {(currentPage - 1) * 20 + 1}-{Math.min(currentPage * 20, leaderboard.total)} من {leaderboard.total} مستخدم
                   </div>
                   <div className="flex items-center space-x-2 space-x-reverse">
                     <Button
@@ -430,7 +458,7 @@ export default function HomePage() {
                       variant="outline"
                       size="sm"
                       onClick={() => setCurrentPage(p => p + 1)}
-                      disabled={!leaderboard?.users || leaderboard.users.length < 20}
+                      disabled={leaderboard.users.length < 20}
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
@@ -445,60 +473,60 @@ export default function HomePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <Card>
                 <CardHeader>
-                  <CardTitle className="arabic-text">الإنجازات الأخيرة</CardTitle>
+                  <CardTitle className="arabic-text flex items-center">
+                    <Flame className="text-islamic-gold ml-2" />
+                    الإنجازات
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex items-center p-3 bg-islamic-green bg-opacity-5 rounded-lg">
-                    <div className="w-10 h-10 bg-islamic-green rounded-full flex items-center justify-center ml-3">
-                      <Flame className="text-white" />
+                  <div className="flex items-center p-4 bg-islamic-green bg-opacity-10 rounded-lg border border-islamic-green border-opacity-20">
+                    <div className="w-12 h-12 bg-islamic-green rounded-full flex items-center justify-center ml-4">
+                      <Star className="text-white h-6 w-6" />
                     </div>
                     <div className="flex-1">
-                      <p className="font-medium text-islamic-navy arabic-text">سلسلة 7 أيام</p>
-                      <p className="text-sm text-gray-600 arabic-text">أكملت جميع الصلوات لمدة 7 أيام متتالية</p>
+                      <p className="font-semibold text-islamic-navy arabic-text text-lg">إنجاز أسبوعي</p>
+                      <p className="text-sm text-gray-600 arabic-text">أكمل جميع الصلوات لمدة 7 أيام</p>
                     </div>
-                    <span className="text-islamic-gold font-semibold">+50 نقطة</span>
                   </div>
                   
-                  <div className="flex items-center p-3 bg-islamic-gold bg-opacity-5 rounded-lg">
-                    <div className="w-10 h-10 bg-islamic-gold rounded-full flex items-center justify-center ml-3">
-                      <Star className="text-white" />
+                  <div className="flex items-center p-4 bg-islamic-gold bg-opacity-10 rounded-lg border border-islamic-gold border-opacity-20">
+                    <div className="w-12 h-12 bg-islamic-gold rounded-full flex items-center justify-center ml-4">
+                      <Trophy className="text-white h-6 w-6" />
                     </div>
                     <div className="flex-1">
-                      <p className="font-medium text-islamic-navy arabic-text">متسابق شهري</p>
-                      <p className="text-sm text-gray-600 arabic-text">وصلت للمراكز العشرة الأولى هذا الشهر</p>
+                      <p className="font-semibold text-islamic-navy arabic-text text-lg">إنجاز شهري</p>
+                      <p className="text-sm text-gray-600 arabic-text">حقق أفضل نتائج هذا الشهر</p>
                     </div>
-                    <span className="text-islamic-gold font-semibold">+25 نقطة</span>
                   </div>
                 </CardContent>
               </Card>
               
-              <Card className="bg-gradient-to-br from-islamic-gold to-islamic-green text-white">
-                <CardHeader>
-                  <CardTitle className="arabic-text">المكافأة الشهرية</CardTitle>
-                  <CardDescription className="text-white/80 arabic-text">
-                    اقترح مكافأة للفائز بمسابقة هذا الشهر
+              <Card className="bg-gradient-to-br from-islamic-gold via-islamic-green to-islamic-sage text-white overflow-hidden relative">
+                <div className="absolute inset-0 bg-black/10"></div>
+                <CardHeader className="relative z-10">
+                  <div className="flex items-center justify-center mb-4">
+                    <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
+                      <Trophy className="h-10 w-10 text-white" />
+                    </div>
+                  </div>
+                  <CardTitle className="arabic-text text-center text-xl">مسابقة الشهر</CardTitle>
+                  <CardDescription className="text-white/90 arabic-text text-center">
+                    اقترح مكافأة للفائز
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="text-center mb-4">
-                    <Trophy className="h-12 w-12 mx-auto mb-2" />
-                    <h4 className="text-xl font-bold mb-2 arabic-text">
-                      مكافأة {new Date().toLocaleDateString('ar-SA', { month: 'long', year: 'numeric' })}
-                    </h4>
-                  </div>
-                  
-                  <div className="bg-white/20 rounded-lg p-4">
+                <CardContent className="relative z-10">
+                  <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4">
                     <Textarea
-                      placeholder="اكتب اقتراحك للمكافأة هنا..."
+                      placeholder="اقترح مكافأة مميزة للفائز..."
                       value={rewardSuggestion}
                       onChange={(e) => setRewardSuggestion(e.target.value)}
-                      className="text-islamic-navy placeholder-gray-400 bg-white resize-none text-right"
+                      className="text-islamic-navy placeholder-gray-500 bg-white/90 resize-none text-right border-0 focus:ring-2 focus:ring-white"
                       rows={3}
                     />
                     <Button
                       onClick={() => submitRewardMutation.mutate(rewardSuggestion)}
                       disabled={!rewardSuggestion.trim() || submitRewardMutation.isPending}
-                      className="w-full mt-3 bg-white text-islamic-green font-semibold hover:bg-gray-100"
+                      className="w-full mt-4 bg-white text-islamic-green font-semibold hover:bg-white/90 shadow-lg"
                     >
                       {submitRewardMutation.isPending ? "جاري الإرسال..." : "إرسال الاقتراح"}
                     </Button>

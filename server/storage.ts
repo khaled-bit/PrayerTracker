@@ -29,13 +29,14 @@ export interface IStorage {
     monthlyRank: number;
     totalUsers: number;
   }>;
-  getLeaderboard(year: number, month: number, limit: number, offset: number): Promise<{
+  getLeaderboard(year: number, month: number, limit: number, offset: number, search?: string): Promise<{
     users: Array<{
       id: number;
       name: string;
       age: number;
       totalPoints: number;
       dailyStreaks: number;
+      yearlyStreaks: number;
       prayersCompleted: number;
       rank: number;
     }>;
@@ -46,11 +47,11 @@ export interface IStorage {
   updateDailyStreak(userId: number, date: string, isQualified: boolean): Promise<void>;
   submitRewardSuggestion(userId: number, month: string, suggestion: string): Promise<void>;
   
-  sessionStore: session.SessionStore;
+  sessionStore: any;
 }
 
 export class DatabaseStorage implements IStorage {
-  public sessionStore: session.SessionStore;
+  public sessionStore: any;
 
   constructor() {
     this.sessionStore = new PostgresSessionStore({ 
@@ -175,13 +176,14 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  async getLeaderboard(year: number, month: number, limit: number, offset: number): Promise<{
+  async getLeaderboard(year: number, month: number, limit: number, offset: number, search?: string): Promise<{
     users: Array<{
       id: number;
       name: string;
       age: number;
       totalPoints: number;
       dailyStreaks: number;
+      yearlyStreaks: number;
       prayersCompleted: number;
       rank: number;
     }>;
@@ -190,14 +192,15 @@ export class DatabaseStorage implements IStorage {
     const startDate = `${year}-${month.toString().padStart(2, '0')}-01`;
     const endDate = `${year}-${month.toString().padStart(2, '0')}-31`;
 
-    const leaderboardQuery = db
+    let leaderboardQuery = db
       .select({
         id: users.id,
         name: users.name,
         age: users.age,
         totalPoints: sql<number>`COALESCE(SUM(${userPrayers.pointsAwarded}), 0)`,
         prayersCompleted: sql<number>`COUNT(${userPrayers.id})`,
-        dailyStreaks: sql<number>`COALESCE((SELECT COUNT(*) FROM ${dailyStreaks} WHERE ${dailyStreaks.userId} = ${users.id} AND ${dailyStreaks.isQualified} = true), 0)`,
+        dailyStreaks: sql<number>`COALESCE((SELECT COUNT(*) FROM ${dailyStreaks} WHERE ${dailyStreaks.userId} = ${users.id} AND ${dailyStreaks.isQualified} = true AND DATE_PART('month', ${dailyStreaks.streakDate}) = ${month} AND DATE_PART('year', ${dailyStreaks.streakDate}) = ${year}), 0)`,
+        yearlyStreaks: sql<number>`COALESCE((SELECT COUNT(*) FROM ${dailyStreaks} WHERE ${dailyStreaks.userId} = ${users.id} AND ${dailyStreaks.isQualified} = true AND DATE_PART('year', ${dailyStreaks.streakDate}) = ${year}), 0)`,
       })
       .from(users)
       .leftJoin(
@@ -209,9 +212,13 @@ export class DatabaseStorage implements IStorage {
         )
       )
       .groupBy(users.id, users.name, users.age)
-      .orderBy(desc(sql`COALESCE(SUM(${userPrayers.pointsAwarded}), 0)`))
-      .limit(limit)
-      .offset(offset);
+      .orderBy(desc(sql`COALESCE(SUM(${userPrayers.pointsAwarded}), 0)`));
+
+    if (search) {
+      leaderboardQuery = leaderboardQuery.where(sql`${users.name} ILIKE ${'%' + search + '%'}`);
+    }
+
+    leaderboardQuery = leaderboardQuery.limit(limit).offset(offset);
 
     const results = await leaderboardQuery;
     

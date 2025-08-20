@@ -88,8 +88,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const month = parseInt(req.query.month as string) || new Date().getMonth() + 1;
       const limit = parseInt(req.query.limit as string) || 20;
       const offset = parseInt(req.query.offset as string) || 0;
+      const search = req.query.search as string;
 
-      const leaderboard = await storage.getLeaderboard(year, month, limit, offset);
+      const leaderboard = await storage.getLeaderboard(year, month, limit, offset, search);
       res.json(leaderboard);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch leaderboard" });
