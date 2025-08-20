@@ -450,70 +450,65 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                <div className="w-full bg-white rounded-lg border shadow-sm overflow-hidden">
-                  <div className="w-full">
-                    {/* Header Row */}
-                    <div className="grid grid-cols-7 gap-4 bg-gray-50 border-b px-4 py-3" dir="rtl" style={{gridTemplateColumns: "160px 140px 140px 120px 80px 200px 100px"}}>
-                      <div className="text-right font-semibold text-gray-900 arabic-text">الصلوات المكتملة</div>
-                      <div className="text-right font-semibold text-gray-900 arabic-text">السلاسل السنوية</div>
-                      <div className="text-right font-semibold text-gray-900 arabic-text">السلاسل الشهرية</div>
-                      <div className="text-right font-semibold text-gray-900 arabic-text">النقاط</div>
-                      <div className="text-right font-semibold text-gray-900 arabic-text">العمر</div>
-                      <div className="text-right font-semibold text-gray-900 arabic-text">الاسم</div>
-                      <div className="text-right font-semibold text-gray-900 arabic-text">الترتيب</div>
-                    </div>
-
-                    {/* Data Rows */}
-                    {leaderboard.users.map((user: any, index: number) => (
-                      <div key={user.id} className="grid grid-cols-7 gap-4 border-b hover:bg-gray-50 px-4 py-3 transition-colors" dir="rtl" style={{gridTemplateColumns: "160px 140px 140px 120px 80px 200px 100px"}}>
-                        <div className="text-right flex justify-end items-center">
-                          <span className="text-sm text-gray-900">{user.prayersCompleted}</span>
-                        </div>
-                        
-                        <div className="text-right flex justify-end items-center">
-                          <div className="flex items-center gap-2">
-                            <Flame className="w-4 h-4 text-islamic-green" />
-                            <span className="text-sm font-semibold text-islamic-green">{user.yearlyStreaks}</span>
-                          </div>
-                        </div>
-                        
-                        <div className="text-right flex justify-end items-center">
-                          <div className="flex items-center gap-2">
-                            <Flame className="w-4 h-4 text-islamic-gold" />
-                            <span className="text-sm font-semibold text-islamic-gold">{user.dailyStreaks}</span>
-                          </div>
-                        </div>
-                        
-                        <div className="text-right flex justify-end items-center">
-                          <span className="text-lg font-semibold text-islamic-green">{user.totalPoints}</span>
-                        </div>
-                        
-                        <div className="text-right flex justify-end items-center">
-                          <span className="text-sm text-gray-900">{user.age}</span>
-                        </div>
-                        
-                        <div className="text-right flex justify-end items-center">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-islamic-green rounded-full flex items-center justify-center flex-shrink-0">
-                              <span className="text-white text-xs font-medium">
-                                {user.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+                <div className="w-full bg-white rounded-lg border shadow-sm overflow-x-auto" dir="rtl">
+                  <table className="w-full border-collapse" dir="rtl">
+                    <thead>
+                      <tr className="bg-gray-50 border-b">
+                        <th className="text-right p-4 font-semibold text-gray-900 arabic-text w-32">الترتيب</th>
+                        <th className="text-right p-4 font-semibold text-gray-900 arabic-text w-48">الاسم</th>
+                        <th className="text-right p-4 font-semibold text-gray-900 arabic-text w-24">العمر</th>
+                        <th className="text-right p-4 font-semibold text-gray-900 arabic-text w-32">النقاط</th>
+                        <th className="text-right p-4 font-semibold text-gray-900 arabic-text w-40">السلاسل الشهرية</th>
+                        <th className="text-right p-4 font-semibold text-gray-900 arabic-text w-40">السلاسل السنوية</th>
+                        <th className="text-right p-4 font-semibold text-gray-900 arabic-text w-40">الصلوات المكتملة</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {leaderboard.users.map((user: any, index: number) => (
+                        <tr key={user.id} className="border-b hover:bg-gray-50 transition-colors">
+                          <td className="text-right p-4">
+                            <div className="flex items-center gap-2 justify-end">
+                              <span className={`text-lg font-bold ${index === 0 ? 'text-islamic-gold' : 'text-gray-900'}`}>
+                                #{user.rank}
                               </span>
+                              {index === 0 && <Crown className="text-islamic-gold h-4 w-4" />}
                             </div>
-                            <span className="text-sm font-medium text-gray-900 arabic-text">{user.name}</span>
-                          </div>
-                        </div>
-                        
-                        <div className="text-right flex justify-end items-center">
-                          <div className="flex items-center gap-2">
-                            <span className={`text-lg font-bold ${index === 0 ? 'text-islamic-gold' : 'text-gray-900'}`}>
-                              #{user.rank}
-                            </span>
-                            {index === 0 && <Crown className="text-islamic-gold h-4 w-4" />}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                          </td>
+                          <td className="text-right p-4">
+                            <div className="flex items-center gap-3 justify-end">
+                              <span className="text-sm font-medium text-gray-900 arabic-text">{user.name}</span>
+                              <div className="w-8 h-8 bg-islamic-green rounded-full flex items-center justify-center flex-shrink-0">
+                                <span className="text-white text-xs font-medium">
+                                  {user.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="text-right p-4">
+                            <span className="text-sm text-gray-900">{user.age}</span>
+                          </td>
+                          <td className="text-right p-4">
+                            <span className="text-lg font-semibold text-islamic-green">{user.totalPoints}</span>
+                          </td>
+                          <td className="text-right p-4">
+                            <div className="flex items-center gap-2 justify-end">
+                              <span className="text-sm font-semibold text-islamic-gold">{user.dailyStreaks}</span>
+                              <Flame className="w-4 h-4 text-islamic-gold" />
+                            </div>
+                          </td>
+                          <td className="text-right p-4">
+                            <div className="flex items-center gap-2 justify-end">
+                              <span className="text-sm font-semibold text-islamic-green">{user.yearlyStreaks}</span>
+                              <Flame className="w-4 h-4 text-islamic-green" />
+                            </div>
+                          </td>
+                          <td className="text-right p-4">
+                            <span className="text-sm text-gray-900">{user.prayersCompleted}</span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
 
                 {/* Pagination */}
