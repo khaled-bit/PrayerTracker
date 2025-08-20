@@ -10,7 +10,7 @@ export const users = pgTable("users", {
   name: varchar("name", { length: 100 }).notNull(),
   age: integer("age").notNull(),
   email: varchar("email", { length: 150 }).notNull().unique(),
-  password: text("password").notNull(),
+  passwordHash: text("password_hash").notNull(),
   country: varchar("country", { length: 100 }),
   timezone: varchar("timezone", { length: 100 }),
   createdAt: timestamp("created_at").default(sql`NOW()`),
@@ -87,7 +87,7 @@ export const userPrayersRelations = relations(userPrayers, ({ one }) => ({
   }),
 }));
 
-// Insert schemas
+// Insert schemas  
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,

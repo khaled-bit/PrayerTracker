@@ -51,7 +51,7 @@ export function setupAuth(app: Express) {
     new LocalStrategy({ usernameField: "email" }, async (email, password, done) => {
       try {
         const user = await storage.getUserByEmail(email);
-        if (!user || !(await comparePasswords(password, user.password))) {
+        if (!user || !(await comparePasswords(password, user.passwordHash))) {
           return done(null, false, { message: "Invalid email or password" });
         }
         return done(null, user);
@@ -73,16 +73,18 @@ export function setupAuth(app: Express) {
 
   app.post("/api/register", async (req, res, next) => {
     try {
-      const validatedData = insertUserSchema.parse(req.body);
-      
-      const existingUser = await storage.getUserByEmail(validatedData.email);
+      const existingUser = await storage.getUserByEmail(req.body.email);
       if (existingUser) {
         return res.status(400).json({ message: "Email already exists" });
       }
 
       const user = await storage.createUser({
-        ...validatedData,
-        password: await hashPassword(validatedData.password),
+        name: req.body.name,
+        age: parseInt(req.body.age),
+        email: req.body.email,
+        passwordHash: await hashPassword(req.body.password),
+        country: req.body.country,
+        timezone: req.body.timezone,
       });
 
       req.login(user, (err) => {
@@ -90,9 +92,7 @@ export function setupAuth(app: Express) {
         res.status(201).json(user);
       });
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid input data", errors: error.errors });
-      }
+      console.error('Registration error:', error);
       next(error);
     }
   });
