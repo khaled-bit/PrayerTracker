@@ -9,9 +9,11 @@ const PostgresSessionStore = connectPg(session);
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
+  getUserById(id: number): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined>;
+  updateUserPassword(id: number, passwordHash: string): Promise<void>;
   
   // Prayer management
   getPrayers(): Promise<Prayer[]>;
@@ -65,6 +67,10 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
+  async getUserById(id: number): Promise<User | undefined> {
+    return this.getUser(id);
+  }
+
   async getUserByEmail(email: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.email, email));
     return user || undefined;
@@ -85,6 +91,13 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, id))
       .returning();
     return user || undefined;
+  }
+
+  async updateUserPassword(id: number, passwordHash: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ passwordHash, updatedAt: sql`NOW()` })
+      .where(eq(users.id, id));
   }
 
   async getPrayers(): Promise<Prayer[]> {
@@ -185,6 +198,7 @@ export class DatabaseStorage implements IStorage {
       dailyStreaks: number;
       yearlyStreaks: number;
       prayersCompleted: number;
+      totalPrayersPrayed: number;
       rank: number;
     }>;
     total: number;
@@ -198,7 +212,8 @@ export class DatabaseStorage implements IStorage {
         name: users.name,
         age: users.age,
         totalPoints: sql<number>`COALESCE(SUM(${userPrayers.pointsAwarded}), 0)`,
-        prayersCompleted: sql<number>`COUNT(${userPrayers.id})`,
+        prayersCompleted: sql<number>`COALESCE(SUM(CASE WHEN ${userPrayers.pointsAwarded} = 5 THEN 1 ELSE 0 END), 0)`,
+        totalPrayersPrayed: sql<number>`COALESCE(SUM(CASE WHEN ${userPrayers.pointsAwarded} > 0 THEN 1 ELSE 0 END), 0)`,
         dailyStreaks: sql<number>`COALESCE((SELECT COUNT(*) FROM ${dailyStreaks} WHERE ${dailyStreaks.userId} = ${users.id} AND ${dailyStreaks.isQualified} = true AND DATE_PART('month', ${dailyStreaks.streakDate}) = ${month} AND DATE_PART('year', ${dailyStreaks.streakDate}) = ${year}), 0)`,
         yearlyStreaks: sql<number>`COALESCE((SELECT COUNT(*) FROM ${dailyStreaks} WHERE ${dailyStreaks.userId} = ${users.id} AND ${dailyStreaks.isQualified} = true AND DATE_PART('year', ${dailyStreaks.streakDate}) = ${year}), 0)`,
       })

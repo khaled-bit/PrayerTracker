@@ -4,7 +4,23 @@ import { setupAuth } from "./auth";
 import { storage } from "./storage";
 import { insertUserPrayerSchema } from "@shared/schema";
 import { z } from "zod";
-import bcrypt from "bcrypt";
+import { randomBytes, scrypt, timingSafeEqual } from "crypto";
+import { promisify } from "util";
+
+const scryptAsync = promisify(scrypt);
+
+async function hashPassword(password: string) {
+  const salt = randomBytes(16).toString("hex");
+  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
+  return `${buf.toString("hex")}.${salt}`;
+}
+
+async function comparePasswords(supplied: string, stored: string) {
+  const [hashed, salt] = stored.split(".");
+  const hashedBuf = Buffer.from(hashed, "hex");
+  const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
+  return timingSafeEqual(hashedBuf, suppliedBuf);
+}
 
 function requireAuth(req: any, res: any, next: any) {
   if (!req.isAuthenticated()) {
@@ -33,10 +49,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Log a prayer
   app.post("/api/prayers/log", requireAuth, async (req, res) => {
     try {
+      console.log("Received prayer log request:", req.body);
+      
       const validatedData = insertUserPrayerSchema.parse({
         ...req.body,
         userId: req.user!.id,
       });
+      
+      console.log("Validated data:", validatedData);
 
       const loggedPrayer = await storage.logPrayer(validatedData);
 
@@ -55,6 +75,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(loggedPrayer);
     } catch (error) {
+      console.error("Prayer logging error:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid input data", errors: error.errors });
       }
@@ -116,11 +137,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update user profile
   app.patch("/api/user/profile", requireAuth, async (req, res) => {
     try {
-      const { name, age } = req.body;
+      const { name, age, gender } = req.body;
       const updates: any = {};
 
       if (name) updates.name = name;
       if (age) updates.age = parseInt(age);
+      if (gender) updates.gender = gender;
 
       const updatedUser = await storage.updateUser(req.user!.id, updates);
       res.json(updatedUser);
@@ -135,22 +157,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { currentPassword, newPassword } = req.body;
       const userId = req.user!.id;
 
-      const user = await storage.getUserById(userId); // Assuming a getUserById method exists
+      const user = await storage.getUserById(userId);
 
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
-      const isMatch = await bcrypt.compare(currentPassword, user.passwordHash); // Assuming passwordHash is stored
+      const isMatch = await comparePasswords(currentPassword, user.passwordHash);
 
       if (!isMatch) {
         return res.status(400).json({ message: "Incorrect current password" });
       }
 
-      const salt = await bcrypt.genSalt(10);
-      const passwordHash = await bcrypt.hash(newPassword, salt);
+      const passwordHash = await hashPassword(newPassword);
 
-      await storage.updateUserPassword(userId, passwordHash); // Assuming an updateUserPassword method exists
+      await storage.updateUserPassword(userId, passwordHash);
 
       res.json({ message: "Password updated successfully" });
     } catch (error) {

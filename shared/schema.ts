@@ -11,6 +11,7 @@ export const users = pgTable("users", {
   age: integer("age").notNull(),
   email: varchar("email", { length: 150 }).notNull().unique(),
   passwordHash: text("password_hash").notNull(),
+  gender: varchar("gender", { length: 10 }).notNull().default('male'), // 'male' or 'female'
   country: varchar("country", { length: 100 }),
   timezone: varchar("timezone", { length: 100 }),
   createdAt: timestamp("created_at").default(sql`NOW()`),
@@ -94,8 +95,14 @@ export const insertUserSchema = createInsertSchema(users).omit({
   updatedAt: true,
 });
 
-export const insertUserPrayerSchema = createInsertSchema(userPrayers).omit({
-  id: true,
+// Custom schema that handles string dates properly
+export const insertUserPrayerSchema = z.object({
+  userId: z.number(),
+  prayerId: z.number(),
+  prayerDate: z.string().transform((val) => new Date(val)),
+  prayedAt: z.union([z.string().transform((val) => new Date(val)), z.null()]).optional(),
+  isOnTime: z.boolean().optional(),
+  pointsAwarded: z.number().optional(),
 });
 
 export const insertDailyStreakSchema = createInsertSchema(dailyStreaks).omit({

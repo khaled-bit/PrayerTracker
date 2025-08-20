@@ -1,0 +1,756 @@
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق تتبع الصلاة - Prayer Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'islamic-green': '#047857',
+                        'islamic-gold': '#D97706',
+                        'islamic-cream': '#FFFBEB',
+                        'islamic-sage': '#10B981',
+                        'islamic-navy': '#1E293B'
+                    },
+                    fontFamily: {
+                        'arabic': ['Amiri', 'serif'],
+                        'latin': ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .geometric-border {
+            border-image: linear-gradient(45deg, #047857, #D97706) 1;
+            border-width: 2px;
+            border-style: solid;
+        }
+        
+        .prayer-card {
+            background: linear-gradient(135deg, rgba(4, 120, 87, 0.05) 0%, rgba(217, 119, 6, 0.05) 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .prayer-card:hover {
+            background: linear-gradient(135deg, rgba(4, 120, 87, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%);
+            transform: translateY(-2px);
+        }
+        
+        .streak-ring {
+            background: conic-gradient(from 0deg, #047857 0deg 216deg, #e5e7eb 216deg 360deg);
+        }
+        
+        .arabic-text {
+            font-family: 'Amiri', serif;
+        }
+        
+        .latin-text {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .rtl-flip {
+            transform: scaleX(-1);
+        }
+        
+        [dir="ltr"] .rtl-flip {
+            transform: scaleX(1);
+        }
+    </style>
+</head>
+<body class="bg-islamic-cream min-h-screen">
+    <!-- Navigation Header -->
+    <!-- @COMPONENT: NavigationHeader [user, language, notifications] -->
+    <nav class="bg-white shadow-lg border-b-2 border-islamic-gold">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo and Title -->
+                <div class="flex items-center space-x-4 space-x-reverse">
+                    <div class="w-10 h-10 bg-islamic-green rounded-full flex items-center justify-center">
+                        <i class="fas fa-mosque text-white text-lg"></i>
+                    </div>
+                    <h1 class="text-xl font-bold text-islamic-navy arabic-text">تطبيق تتبع الصلاة</h1>
+                </div>
+                
+                <!-- Navigation Items -->
+                <div class="flex items-center space-x-6 space-x-reverse">
+                    <!-- Language Toggle -->
+                    <button data-event="click:toggleLanguage" class="flex items-center space-x-2 space-x-reverse text-islamic-navy hover:text-islamic-green transition-colors">
+                        <i class="fas fa-globe"></i>
+                        <span class="arabic-text">العربية</span>
+                    </button>
+                    
+                    <!-- Notifications -->
+                    <button data-event="click:showNotifications" class="relative text-islamic-navy hover:text-islamic-green transition-colors">
+                        <i class="fas fa-bell text-lg"></i>
+                        <span class="absolute -top-2 -right-2 bg-islamic-gold text-white rounded-full text-xs w-5 h-5 flex items-center justify-center" data-bind="notificationCount">3</span>
+                    </button>
+                    
+                    <!-- User Profile -->
+                    <div class="flex items-center space-x-3 space-x-reverse">
+                        <div class="w-8 h-8 bg-islamic-sage rounded-full flex items-center justify-center">
+                            <i class="fas fa-user text-white text-sm"></i>
+                        </div>
+                        <span class="text-islamic-navy font-medium arabic-text" data-bind="user.name">أحمد محمد</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <!-- @END_COMPONENT: NavigationHeader -->
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- @STATE: currentView:string = 'dashboard' -->
+        <!-- @STATE: prayers:array = [] -->
+        <!-- @STATE: userStats:object = {} -->
+        
+        <!-- Dashboard Header with Stats -->
+        <!-- @COMPONENT: DashboardHeader [userStats, currentStreak, monthlyPoints] -->
+        <div class="mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <!-- Monthly Points -->
+                <div class="bg-white rounded-xl shadow-lg p-6 geometric-border">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-semibold text-islamic-navy arabic-text">نقاط هذا الشهر</h3>
+                            <p class="text-3xl font-bold text-islamic-green" data-bind="userStats.monthlyPoints">127</p>
+                        </div>
+                        <div class="w-12 h-12 bg-islamic-green bg-opacity-10 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-star text-islamic-green text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Current Streak -->
+                <div class="bg-white rounded-xl shadow-lg p-6 geometric-border">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-semibold text-islamic-navy arabic-text">السلسلة الحالية</h3>
+                            <p class="text-3xl font-bold text-islamic-gold" data-bind="userStats.currentStreak">8</p>
+                            <span class="text-sm text-gray-600 arabic-text">أيام متتالية</span>
+                        </div>
+                        <div class="relative w-16 h-16">
+                            <div class="streak-ring w-16 h-16 rounded-full"></div>
+                            <div class="absolute inset-2 bg-white rounded-full flex items-center justify-center">
+                                <i class="fas fa-fire text-islamic-gold text-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Monthly Rank -->
+                <div class="bg-white rounded-xl shadow-lg p-6 geometric-border">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-semibold text-islamic-navy arabic-text">الترتيب الشهري</h3>
+                            <p class="text-3xl font-bold text-islamic-navy" data-bind="userStats.monthlyRank">#12</p>
+                            <span class="text-sm text-gray-600 arabic-text">من 245 مستخدم</span>
+                        </div>
+                        <div class="w-12 h-12 bg-islamic-gold bg-opacity-10 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-trophy text-islamic-gold text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: DashboardHeader -->
+
+        <!-- Main Content Tabs -->
+        <!-- @COMPONENT: MainTabs [activeTab, onTabChange] -->
+        <div class="mb-8">
+            <div class="border-b border-gray-200">
+                <nav class="flex space-x-8 space-x-reverse">
+                    <button data-event="click:setActiveTab('prayers')" class="py-2 px-1 border-b-2 border-islamic-green text-islamic-green font-medium arabic-text">
+                        الصلوات اليومية
+                    </button>
+                    <button data-event="click:setActiveTab('leaderboard')" class="py-2 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium arabic-text">
+                        لوحة المتصدرين
+                    </button>
+                    <button data-event="click:setActiveTab('achievements')" class="py-2 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium arabic-text">
+                        الإنجازات
+                    </button>
+                    <button data-event="click:setActiveTab('profile')" class="py-2 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium arabic-text">
+                        الملف الشخصي
+                    </button>
+                </nav>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: MainTabs -->
+
+        <!-- Daily Prayers Section -->
+        <!-- @COMPONENT: DailyPrayers [prayers, onPrayerLog, currentTime] -->
+        <div class="mb-12">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-islamic-navy arabic-text">صلوات اليوم</h2>
+                <div class="text-sm text-gray-600 arabic-text">
+                    <i class="fas fa-calendar-day ml-2"></i>
+                    <span data-bind="currentDate">الثلاثاء، 15 يناير 2024</span>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                <!-- @MAP: prayers.map(prayer => ( -->
+                <!-- Fajr Prayer Card -->
+                <div class="prayer-card bg-white rounded-xl shadow-lg p-6 text-center">
+                    <div class="mb-4">
+                        <!-- Beautiful mosque silhouette for prayer time -->
+                        <div class="w-16 h-16 mx-auto bg-islamic-green bg-opacity-10 rounded-full flex items-center justify-center mb-3">
+                            <i class="fas fa-moon text-islamic-green text-2xl"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-islamic-navy arabic-text">الفجر</h3>
+                        <p class="text-sm text-gray-600 arabic-text">Fajr</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <p class="text-xl font-bold text-islamic-navy" data-bind="prayer.scheduledTime">5:30</p>
+                        <p class="text-sm text-gray-600 arabic-text">صباحاً</p>
+                    </div>
+                    
+                    <!-- Prayer Status -->
+                    <div class="mb-4">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-islamic-green text-white">
+                            <i class="fas fa-check ml-1"></i>
+                            <span class="arabic-text">في الوقت</span>
+                        </span>
+                    </div>
+                    
+                    <!-- Points Earned -->
+                    <div class="text-center">
+                        <span class="text-islamic-gold font-semibold" data-bind="prayer.pointsEarned">+5 نقاط</span>
+                    </div>
+                </div>
+                
+                <!-- Dhuhr Prayer Card -->
+                <div class="prayer-card bg-white rounded-xl shadow-lg p-6 text-center">
+                    <div class="mb-4">
+                        <div class="w-16 h-16 mx-auto bg-islamic-gold bg-opacity-10 rounded-full flex items-center justify-center mb-3">
+                            <i class="fas fa-sun text-islamic-gold text-2xl"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-islamic-navy arabic-text">الظهر</h3>
+                        <p class="text-sm text-gray-600 arabic-text">Dhuhr</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <p class="text-xl font-bold text-islamic-navy" data-bind="prayer.scheduledTime">12:45</p>
+                        <p class="text-sm text-gray-600 arabic-text">ظهراً</p>
+                    </div>
+                    
+                    <!-- Prayer Action Button -->
+                    <div class="mb-4">
+                        <button data-event="click:logPrayer(prayer.id)" class="w-full bg-islamic-green hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors arabic-text">
+                            تسجيل الصلاة
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Asr Prayer Card -->
+                <div class="prayer-card bg-white rounded-xl shadow-lg p-6 text-center">
+                    <div class="mb-4">
+                        <div class="w-16 h-16 mx-auto bg-orange-500 bg-opacity-10 rounded-full flex items-center justify-center mb-3">
+                            <i class="fas fa-cloud-sun text-orange-500 text-2xl"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-islamic-navy arabic-text">العصر</h3>
+                        <p class="text-sm text-gray-600 arabic-text">Asr</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <p class="text-xl font-bold text-islamic-navy" data-bind="prayer.scheduledTime">4:15</p>
+                        <p class="text-sm text-gray-600 arabic-text">عصراً</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                            <i class="fas fa-clock ml-1"></i>
+                            <span class="arabic-text">متأخر</span>
+                        </span>
+                    </div>
+                    
+                    <div class="text-center">
+                        <span class="text-yellow-600 font-semibold" data-bind="prayer.pointsEarned">+1 نقطة</span>
+                    </div>
+                </div>
+                
+                <!-- Maghrib Prayer Card -->
+                <div class="prayer-card bg-white rounded-xl shadow-lg p-6 text-center">
+                    <div class="mb-4">
+                        <div class="w-16 h-16 mx-auto bg-red-500 bg-opacity-10 rounded-full flex items-center justify-center mb-3">
+                            <i class="fas fa-sun text-red-500 text-2xl"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-islamic-navy arabic-text">المغرب</h3>
+                        <p class="text-sm text-gray-600 arabic-text">Maghrib</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <p class="text-xl font-bold text-islamic-navy" data-bind="prayer.scheduledTime">6:30</p>
+                        <p class="text-sm text-gray-600 arabic-text">مساءً</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                            <i class="fas fa-hourglass-half ml-1"></i>
+                            <span class="arabic-text">قادمة</span>
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Isha Prayer Card -->
+                <div class="prayer-card bg-white rounded-xl shadow-lg p-6 text-center">
+                    <div class="mb-4">
+                        <div class="w-16 h-16 mx-auto bg-indigo-500 bg-opacity-10 rounded-full flex items-center justify-center mb-3">
+                            <i class="fas fa-star text-indigo-500 text-2xl"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-islamic-navy arabic-text">العشاء</h3>
+                        <p class="text-sm text-gray-600 arabic-text">Isha</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <p class="text-xl font-bold text-islamic-navy" data-bind="prayer.scheduledTime">8:00</p>
+                        <p class="text-sm text-gray-600 arabic-text">مساءً</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                            <i class="fas fa-hourglass-half ml-1"></i>
+                            <span class="arabic-text">قادمة</span>
+                        </span>
+                    </div>
+                </div>
+                <!-- @END_MAP )) -->
+            </div>
+        </div>
+        <!-- @END_COMPONENT: DailyPrayers -->
+
+        <!-- Leaderboard Section -->
+        <!-- @COMPONENT: Leaderboard [users, filters, sorting, pagination] -->
+        <div class="mb-12">
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-islamic-navy arabic-text">لوحة المتصدرين</h2>
+                    <div class="flex items-center space-x-4 space-x-reverse">
+                        <!-- Month/Year Filter -->
+                        <select data-event="change:filterByMonth" class="border border-gray-300 rounded-lg px-3 py-2 text-sm arabic-text">
+                            <option value="2024-01">يناير 2024</option>
+                            <option value="2023-12">ديسمبر 2023</option>
+                            <option value="2023-11">نوفمبر 2023</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Search and Sort Controls -->
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 space-y-4 md:space-y-0">
+                    <!-- Search Bar -->
+                    <div class="relative flex-1 max-w-md">
+                        <input type="text" placeholder="البحث بالاسم أو البريد الإلكتروني..." 
+                               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-islamic-green focus:border-transparent arabic-text"
+                               data-event="input:searchUsers">
+                        <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                    </div>
+                    
+                    <!-- Sort Options -->
+                    <div class="flex items-center space-x-4 space-x-reverse">
+                        <label class="text-sm font-medium text-gray-700 arabic-text">ترتيب حسب:</label>
+                        <select data-event="change:sortLeaderboard" class="border border-gray-300 rounded-lg px-3 py-2 text-sm arabic-text">
+                            <option value="points">النقاط</option>
+                            <option value="streaks">السلاسل</option>
+                            <option value="prayers">الصلوات المكتملة</option>
+                            <option value="name">الاسم</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Leaderboard Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider arabic-text">الترتيب</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider arabic-text">الاسم</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider arabic-text">العمر</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider arabic-text">النقاط</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider arabic-text">السلاسل</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider arabic-text">الصلوات المكتملة</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <!-- @MAP: leaderboardUsers.map((user, index) => ( -->
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <span class="text-lg font-bold text-islamic-gold" data-bind="user.rank">#1</span>
+                                        <i class="fas fa-crown text-islamic-gold mr-2"></i>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="w-8 h-8 bg-islamic-green rounded-full flex items-center justify-center ml-3">
+                                            <span class="text-white text-sm font-medium" data-bind="user.initials">أح</span>
+                                        </div>
+                                        <span class="text-sm font-medium text-gray-900 arabic-text" data-bind="user.name">أحمد محمد علي</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-bind="user.age">28</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="text-lg font-semibold text-islamic-green" data-bind="user.points">145</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-islamic-gold bg-opacity-10 text-islamic-gold">
+                                        <i class="fas fa-fire mr-1"></i>
+                                        <span data-bind="user.streaks">12</span>
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-bind="user.prayersCompleted">89</td>
+                            </tr>
+                            
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="text-lg font-bold text-gray-600" data-bind="user.rank">#2</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="w-8 h-8 bg-islamic-sage rounded-full flex items-center justify-center ml-3">
+                                            <span class="text-white text-sm font-medium" data-bind="user.initials">فا</span>
+                                        </div>
+                                        <span class="text-sm font-medium text-gray-900 arabic-text" data-bind="user.name">فاطمة أحمد</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-bind="user.age">25</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="text-lg font-semibold text-islamic-green" data-bind="user.points">138</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-islamic-gold bg-opacity-10 text-islamic-gold">
+                                        <i class="fas fa-fire mr-1"></i>
+                                        <span data-bind="user.streaks">10</span>
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-bind="user.prayersCompleted">85</td>
+                            </tr>
+                            
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="text-lg font-bold text-gray-600" data-bind="user.rank">#3</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="w-8 h-8 bg-islamic-navy rounded-full flex items-center justify-center ml-3">
+                                            <span class="text-white text-sm font-medium" data-bind="user.initials">مح</span>
+                                        </div>
+                                        <span class="text-sm font-medium text-gray-900 arabic-text" data-bind="user.name">محمد عبدالله</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-bind="user.age">32</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="text-lg font-semibold text-islamic-green" data-bind="user.points">132</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-islamic-gold bg-opacity-10 text-islamic-gold">
+                                        <i class="fas fa-fire mr-1"></i>
+                                        <span data-bind="user.streaks">8</span>
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-bind="user.prayersCompleted">82</td>
+                            </tr>
+                            <!-- @END_MAP )) -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                <div class="flex items-center justify-between mt-6">
+                    <div class="flex items-center text-sm text-gray-600 arabic-text">
+                        <span>عرض 1-20 من 245 مستخدم</span>
+                    </div>
+                    <div class="flex items-center space-x-2 space-x-reverse">
+                        <button data-event="click:previousPage" class="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                        <button class="px-3 py-2 text-sm font-medium bg-islamic-green text-white rounded-lg">1</button>
+                        <button class="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50">2</button>
+                        <button class="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50">3</button>
+                        <button data-event="click:nextPage" class="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: Leaderboard -->
+
+        <!-- Achievements Section -->
+        <!-- @COMPONENT: Achievements [userAchievements, availableRewards] -->
+        <div class="mb-12">
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-islamic-navy mb-6 arabic-text">الإنجازات والمكافآت</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Recent Achievements -->
+                    <div>
+                        <h3 class="text-lg font-semibold text-islamic-navy mb-4 arabic-text">الإنجازات الأخيرة</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center p-3 bg-islamic-green bg-opacity-5 rounded-lg">
+                                <div class="w-10 h-10 bg-islamic-green rounded-full flex items-center justify-center ml-3">
+                                    <i class="fas fa-fire text-white"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="font-medium text-islamic-navy arabic-text">سلسلة 7 أيام</p>
+                                    <p class="text-sm text-gray-600 arabic-text">أكملت جميع الصلوات لمدة 7 أيام متتالية</p>
+                                </div>
+                                <span class="text-islamic-gold font-semibold">+50 نقطة</span>
+                            </div>
+                            
+                            <div class="flex items-center p-3 bg-islamic-gold bg-opacity-5 rounded-lg">
+                                <div class="w-10 h-10 bg-islamic-gold rounded-full flex items-center justify-center ml-3">
+                                    <i class="fas fa-star text-white"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="font-medium text-islamic-navy arabic-text">متسابق شهري</p>
+                                    <p class="text-sm text-gray-600 arabic-text">وصلت للمراكز العشرة الأولى هذا الشهر</p>
+                                </div>
+                                <span class="text-islamic-gold font-semibold">+25 نقطة</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Monthly Reward -->
+                    <div>
+                        <h3 class="text-lg font-semibold text-islamic-navy mb-4 arabic-text">المكافأة الشهرية</h3>
+                        <div class="bg-gradient-to-br from-islamic-gold to-islamic-green p-6 rounded-xl text-white text-center">
+                            <i class="fas fa-gift text-4xl mb-4"></i>
+                            <h4 class="text-xl font-bold mb-2 arabic-text">مكافأة يناير 2024</h4>
+                            <p class="text-sm mb-4 arabic-text">اقترح مكافأة للفائز بمسابقة هذا الشهر</p>
+                            
+                            <!-- Reward Suggestion Form -->
+                            <div class="bg-white bg-opacity-20 rounded-lg p-4">
+                                <textarea placeholder="اكتب اقتراحك للمكافأة هنا..." 
+                                         class="w-full p-3 rounded-lg text-islamic-navy placeholder-gray-400 resize-none arabic-text"
+                                         rows="3" data-event="input:updateRewardSuggestion"></textarea>
+                                <button data-event="click:submitRewardSuggestion" class="w-full mt-3 bg-white text-islamic-green font-semibold py-2 px-4 rounded-lg hover:bg-gray-100 transition-colors arabic-text">
+                                    إرسال الاقتراح
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: Achievements -->
+
+        <!-- User Profile Section -->
+        <!-- @COMPONENT: UserProfile [user, onUpdateProfile, onChangePassword] -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <h2 class="text-2xl font-bold text-islamic-navy mb-6 arabic-text">الملف الشخصي</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Profile Information -->
+                <div>
+                    <h3 class="text-lg font-semibold text-islamic-navy mb-4 arabic-text">المعلومات الشخصية</h3>
+                    <form class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2 arabic-text">الاسم</label>
+                            <input type="text" value="أحمد محمد علي" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-islamic-green focus:border-transparent arabic-text"
+                                   data-bind="user.name" data-event="input:updateName">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2 arabic-text">العمر</label>
+                            <input type="number" value="28" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-islamic-green focus:border-transparent"
+                                   data-bind="user.age" data-event="input:updateAge">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2 arabic-text">البريد الإلكتروني</label>
+                            <input type="email" value="ahmed@example.com" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-islamic-green focus:border-transparent"
+                                   data-bind="user.email" data-event="input:updateEmail">
+                        </div>
+                        
+                        <button type="submit" data-event="click:updateProfile" class="w-full bg-islamic-green hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors arabic-text">
+                            حفظ التغييرات
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Password Change -->
+                <div>
+                    <h3 class="text-lg font-semibold text-islamic-navy mb-4 arabic-text">تغيير كلمة المرور</h3>
+                    <form class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2 arabic-text">كلمة المرور الحالية</label>
+                            <input type="password" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-islamic-green focus:border-transparent"
+                                   data-event="input:updateCurrentPassword">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2 arabic-text">كلمة المرور الجديدة</label>
+                            <input type="password" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-islamic-green focus:border-transparent"
+                                   data-event="input:updateNewPassword">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2 arabic-text">تأكيد كلمة المرور</label>
+                            <input type="password" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-islamic-green focus:border-transparent"
+                                   data-event="input:updateConfirmPassword">
+                        </div>
+                        
+                        <button type="submit" data-event="click:changePassword" class="w-full bg-islamic-gold hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded-lg transition-colors arabic-text">
+                            تغيير كلمة المرور
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: UserProfile -->
+    </div>
+
+    <!-- Notification Modal -->
+    <!-- @COMPONENT: NotificationModal [notifications, isOpen, onClose] -->
+    <div id="notificationModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50" data-event="click:closeNotifications">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6" onclick="event.stopPropagation()">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-islamic-navy arabic-text">الإشعارات</h3>
+                    <button data-event="click:closeNotifications" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="space-y-3">
+                    <!-- @MAP: notifications.map(notification => ( -->
+                    <div class="flex items-start p-3 bg-islamic-cream rounded-lg">
+                        <div class="w-8 h-8 bg-islamic-gold rounded-full flex items-center justify-center ml-3 flex-shrink-0">
+                            <i class="fas fa-bell text-white text-sm"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm font-medium text-islamic-navy arabic-text" data-bind="notification.title">تذكير صلاة الظهر</p>
+                            <p class="text-xs text-gray-600 arabic-text" data-bind="notification.message">لم تسجل صلاة الظهر بعد</p>
+                            <span class="text-xs text-gray-500" data-bind="notification.time">منذ ساعتين</span>
+                        </div>
+                    </div>
+                    <!-- @END_MAP )) -->
+                </div>
+                
+                <div class="mt-4 text-center">
+                    <button data-event="click:markAllRead" class="text-sm text-islamic-green hover:text-green-700 arabic-text">
+                        تحديد الكل كمقروء
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: NotificationModal -->
+
+    <script>
+        // TODO: Implement business logic, API calls, and state management
+        
+        (function() {
+            // Prayer logging functionality
+            function logPrayer(prayerId) {
+                // TODO: Send API request to log prayer
+                console.log('Logging prayer:', prayerId);
+                // Update UI to show prayer completed
+            }
+            
+            // Tab switching
+            function setActiveTab(tab) {
+                // TODO: Implement tab switching logic
+                console.log('Switching to tab:', tab);
+            }
+            
+            // Language toggle
+            function toggleLanguage() {
+                // TODO: Implement language switching
+                const currentLang = document.documentElement.lang;
+                if (currentLang === 'ar') {
+                    document.documentElement.lang = 'en';
+                    document.documentElement.dir = 'ltr';
+                } else {
+                    document.documentElement.lang = 'ar';
+                    document.documentElement.dir = 'rtl';
+                }
+            }
+            
+            // Notification management
+            function showNotifications() {
+                document.getElementById('notificationModal').classList.remove('hidden');
+            }
+            
+            function closeNotifications() {
+                document.getElementById('notificationModal').classList.add('hidden');
+            }
+            
+            // Leaderboard filtering and sorting
+            function filterByMonth(month) {
+                // TODO: Implement month filtering
+                console.log('Filtering by month:', month);
+            }
+            
+            function sortLeaderboard(sortBy) {
+                // TODO: Implement sorting logic
+                console.log('Sorting by:', sortBy);
+            }
+            
+            function searchUsers(query) {
+                // TODO: Implement user search
+                console.log('Searching users:', query);
+            }
+            
+            // Profile management
+            function updateProfile() {
+                // TODO: Implement profile update
+                console.log('Updating profile');
+            }
+            
+            function changePassword() {
+                // TODO: Implement password change
+                console.log('Changing password');
+            }
+            
+            // Monthly reward system
+            function submitRewardSuggestion() {
+                // TODO: Implement reward suggestion submission
+                console.log('Submitting reward suggestion');
+            }
+            
+            // Prayer time calculations (mock)
+            function calculatePrayerTimes() {
+                // TODO: Implement actual prayer time calculations based on location
+                return {
+                    fajr: '5:30',
+                    dhuhr: '12:45', 
+                    asr: '4:15',
+                    maghrib: '6:30',
+                    isha: '8:00'
+                };
+            }
+            
+            // Initialize application
+            function init() {
+                // TODO: Load user data, prayer times, and application state
+                console.log('Initializing Prayer Tracker App');
+                
+                // Set up prayer time reminders
+                // TODO: Implement notification system
+                
+                // Load leaderboard data
+                // TODO: Fetch and display leaderboard
+                
+                // Set up real-time updates
+                // TODO: Implement WebSocket or polling for real-time updates
+            }
+            
+            // Start the application
+            init();
+        })();
+    </script>
+</body>
+</html>
