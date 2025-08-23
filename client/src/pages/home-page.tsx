@@ -19,7 +19,6 @@ import {
   Trophy, 
   Flame, 
   Crown, 
-  Bell,
   Globe,
   User,
   Settings,
@@ -190,8 +189,8 @@ export default function HomePage() {
     queryKey: ["/api/leaderboard", currentPage, searchQuery],
     queryFn: async () => {
       const params = new URLSearchParams({
-        limit: '20',
-        offset: ((currentPage - 1) * 20).toString(),
+        limit: '30',
+        offset: ((currentPage - 1) * 30).toString(),
         ...(searchQuery && { search: searchQuery }),
       });
       const response = await fetch(`/api/leaderboard?${params}`);
@@ -391,27 +390,16 @@ export default function HomePage() {
               <h1 className="text-xl font-bold text-islamic-navy arabic-text">تطبيق تتبع الصلاة</h1>
             </div>
             
-            <div className="flex items-center space-x-6 space-x-reverse">
-
-              
-              <Button variant="ghost" size="sm" className="text-islamic-navy hover:text-islamic-green">
-                <Bell className="w-4 h-4" />
+            <div className="flex items-center space-x-3 space-x-reverse">
+              <span className="text-islamic-navy font-medium arabic-text">{user?.name}</span>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => logoutMutation.mutate()}
+                className="text-islamic-navy hover:text-red-600"
+              >
+                <LogOut className="w-4 h-4" />
               </Button>
-              
-              <div className="flex items-center space-x-3 space-x-reverse">
-                <div className="w-8 h-8 bg-islamic-sage rounded-full flex items-center justify-center">
-                  <User className="text-white text-sm" />
-                </div>
-                <span className="text-islamic-navy font-medium arabic-text">{user?.name}</span>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => logoutMutation.mutate()}
-                  className="text-islamic-navy hover:text-red-600"
-                >
-                  <LogOut className="w-4 h-4" />
-                </Button>
-              </div>
             </div>
           </div>
         </div>
@@ -438,7 +426,7 @@ export default function HomePage() {
             <CardContent className="p-6" dir="rtl">
               <div className="flex items-center justify-between">
                 <div className="text-right">
-                  <h3 className="text-lg font-semibold text-islamic-navy arabic-text">السلسلة الحالية</h3>
+                  <h3 className="text-lg font-semibold text-islamic-navy">Streak</h3>
                   <p className="text-3xl font-bold text-islamic-gold">{userStats?.currentStreak || 0}</p>
                   <span className="text-sm text-gray-600 arabic-text">أيام متتالية</span>
                 </div>
@@ -555,7 +543,7 @@ export default function HomePage() {
                         <tr className="bg-gray-50 border-b">
                            <th className="text-right p-4 font-semibold text-gray-900 arabic-text w-40">صلاوات تمت</th>
                            <th className="text-right p-4 font-semibold text-gray-900 arabic-text w-40">صلاوات فائتة</th>
-                          <th className="text-right p-4 font-semibold text-gray-900 arabic-text w-40">السلاسل الشهرية</th>
+                          <th className="text-right p-4 font-semibold text-gray-900 w-40">Daily Streak</th>
                           <th className="text-right p-4 font-semibold text-gray-900 arabic-text w-32">النقاط</th>
                           <th className="text-right p-4 font-semibold text-gray-900 arabic-text w-24">العمر</th>
                           <th className="text-right p-4 font-semibold text-gray-900 arabic-text w-48">الاسم</th>
@@ -603,7 +591,7 @@ export default function HomePage() {
                 {/* Pagination */}
                 <div className="flex items-center justify-between mt-6">
                   <div className="text-sm text-gray-600 arabic-text text-right">
-                    عرض {(currentPage - 1) * 20 + 1}-{Math.min(currentPage * 20, leaderboard.total)} من {leaderboard.total} مستخدم
+                    عرض {(currentPage - 1) * 30 + 1}-{Math.min(currentPage * 30, leaderboard.total)} من {leaderboard.total} مستخدم
                   </div>
                   <div className="flex items-center space-x-2">
                     <Button
@@ -633,118 +621,26 @@ export default function HomePage() {
 
           {/* Achievements Tab */}
           <TabsContent value="achievements">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="arabic-text flex items-center">
-                    <Flame className="text-islamic-gold ml-2" />
-                    الإنجازات
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {calculateAchievements().map((achievement) => {
-                    const IconComponent = achievement.icon;
-                    return (
-                      <div 
-                        key={achievement.id}
-                        className={`flex items-center p-4 ${achievement.color} bg-opacity-10 rounded-lg border ${achievement.borderColor} border-opacity-20`}
-                      >
-                        <div className={`w-12 h-12 ${achievement.color} rounded-full flex items-center justify-center ml-4`}>
-                          <IconComponent className="text-white h-6 w-6" />
-                    </div>
-                    <div className="flex-1">
-                          <p className="font-semibold text-islamic-navy arabic-text text-lg">{achievement.title}</p>
-                          <p className="text-sm text-gray-600 arabic-text">{achievement.description}</p>
-                          {achievement.completed && achievement.points && (
-                            <p className="text-sm font-semibold text-islamic-green mt-1">
-                              +{achievement.points} نقطة
-                            </p>
-                          )}
-                          {achievement.completed && achievement.rank && (
-                            <p className="text-sm font-semibold text-islamic-gold mt-1">
-                              المركز {achievement.rank}
-                            </p>
-                          )}
-                          {!achievement.completed && achievement.progress !== undefined && (
-                            <div className="mt-2">
-                              <div className="w-full bg-gray-200 rounded-full h-2">
-                                <div 
-                                  className="bg-islamic-green h-2 rounded-full transition-all duration-300"
-                                  style={{ width: `${(achievement.progress / achievement.target) * 100}%` }}
-                                ></div>
-                    </div>
-                              <p className="text-xs text-gray-500 mt-1">
-                                {achievement.progress}/{achievement.target}
-                              </p>
-                  </div>
-                          )}
-                    </div>
-                  </div>
-                    );
-                  })}
-                </CardContent>
-              </Card>
-              
-              {isMonthlyContestOpen() ? (
-              <Card className="bg-gradient-to-br from-islamic-gold via-islamic-green to-islamic-sage text-white overflow-hidden relative">
-                <div className="absolute inset-0 bg-black/10"></div>
-                <CardHeader className="relative z-10">
-                  <div className="flex items-center justify-center mb-4">
-                    <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
-                      <Trophy className="h-10 w-10 text-white" />
-                    </div>
-                  </div>
-                  <CardTitle className="arabic-text text-center text-xl">مسابقة الشهر</CardTitle>
-                  <CardDescription className="text-white/90 arabic-text text-center">
-                    اقترح مكافأة للفائز
+            <div className="flex items-center justify-center min-h-[400px]">
+              <Card className="w-full max-w-md">
+                <CardHeader className="text-center">
+                  <CardTitle className="arabic-text text-2xl text-islamic-navy">قريباً</CardTitle>
+                  <CardDescription className="arabic-text text-lg text-gray-600">
+                    Coming Soon
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="relative z-10">
-                  <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4">
-                    <Textarea
-                      placeholder="اقترح مكافأة مميزة للفائز..."
-                      value={rewardSuggestion}
-                      onChange={(e) => setRewardSuggestion(e.target.value)}
-                      className="text-islamic-navy placeholder-gray-500 bg-white/90 resize-none text-right border-0 focus:ring-2 focus:ring-white"
-                      rows={3}
-                    />
-                    <Button
-                      onClick={() => submitRewardMutation.mutate(rewardSuggestion)}
-                      disabled={!rewardSuggestion.trim() || submitRewardMutation.isPending}
-                      className="w-full mt-4 bg-white text-islamic-green font-semibold hover:bg-white/90 shadow-lg"
-                    >
-                      {submitRewardMutation.isPending ? "جاري الإرسال..." : "إرسال الاقتراح"}
-                    </Button>
+                <CardContent className="text-center">
+                  <div className="w-24 h-24 bg-gradient-to-br from-islamic-gold to-islamic-green rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Trophy className="h-12 w-12 text-white" />
                   </div>
+                  <p className="text-gray-500 arabic-text">
+                    سيتم إطلاق نظام الإنجازات والمسابقات قريباً
+                  </p>
+                  <p className="text-gray-400 text-sm mt-2">
+                    The achievements and contests system will be launched soon
+                  </p>
                 </CardContent>
               </Card>
-              ) : (
-                <Card className="bg-gradient-to-br from-gray-400 to-gray-500 text-white overflow-hidden relative">
-                  <div className="absolute inset-0 bg-black/20"></div>
-                  <CardHeader className="relative z-10">
-                    <div className="flex items-center justify-center mb-4">
-                      <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
-                        <Clock className="h-10 w-10 text-white" />
-                      </div>
-                    </div>
-                    <CardTitle className="arabic-text text-center text-xl">مسابقة الشهر</CardTitle>
-                    <CardDescription className="text-white/90 arabic-text text-center">
-                      المسابقة مغلقة حالياً
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="relative z-10">
-                    <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 text-center">
-                      <p className="text-white/90 arabic-text mb-2">
-                        المسابقة متاحة فقط في اليوم الأول من كل شهر حتى الساعة 6 مساءً
-                      </p>
-                      <div className="flex items-center justify-center gap-2 text-white/80">
-                        <Clock className="h-4 w-4" />
-                        <span className="text-sm">افتح التطبيق في اليوم الأول من الشهر للمشاركة</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
             </div>
           </TabsContent>
 

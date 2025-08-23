@@ -9,7 +9,7 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 100 }).notNull(),
   age: integer("age").notNull(),
-  email: varchar("email", { length: 150 }).notNull().unique(),
+  email: varchar("email", { length: 150 }).notNull().unique("users_email_unique"),
   passwordHash: text("password_hash").notNull(),
   gender: varchar("gender", { length: 10 }).notNull().default('male'), // 'male' or 'female'
   country: varchar("country", { length: 100 }),
@@ -89,11 +89,20 @@ export const userPrayersRelations = relations(userPrayers, ({ one }) => ({
 }));
 
 // Insert schemas  
-export const insertUserSchema = createInsertSchema(users).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
+export const insertUserSchema = createInsertSchema(users)
+  .omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+  })
+  .refine((data) => {
+    // Additional validation to ensure email is properly formatted
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(data.email);
+  }, {
+    message: "Invalid email format",
+    path: ["email"],
+  });
 
 // Custom schema that handles string dates properly
 export const insertUserPrayerSchema = z.object({
